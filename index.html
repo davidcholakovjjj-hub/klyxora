@@ -196,7 +196,19 @@
                 <button type="submit" id="auth-submit-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-pixie-700 via-pixie-600 to-pixie-500 hover:from-pixie-600 hover:to-pixie-400 text-white font-bold text-sm tracking-wide shadow-lg purple-glow transition transform active:scale-[0.99] mt-2">Enter PIXIECHAT</button>
             </form>
         </div>
-    </div>
+    </div><button id="google-login-btn">Log in with Google</button>
+
+<script>
+  document.getElementById('google-login-btn').addEventListener('click', async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+      },
+    });
+  });
+</script>
+
 
     
 
