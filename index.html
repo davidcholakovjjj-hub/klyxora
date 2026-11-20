@@ -141,6 +141,9 @@
         .ripple-host{position:relative;overflow:hidden}
         .ripple{position:absolute;border-radius:9999px;background:rgba(255,255,255,.35);transform:scale(0);animation:rippleOut .65s ease-out forwards;pointer-events:none}
         .burst{position:fixed;z-index:200;pointer-events:none;font-size:20px;animation:burst .95s ease-out forwards}
+        @keyframes pixieBump{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-4px) scale(1.03)}70%{transform:translateY(1px) scale(.98)}}
+        .bump-anim{animation:pixieBump .42s cubic-bezier(.2,1.4,.3,1)}
+        .pixmap-canvas{image-rendering:pixelated;image-rendering:crisp-edges}
         @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
     </style>
 </head>
@@ -240,6 +243,32 @@
                     </div>
                     <div id="channels-list" class="space-y-1"></div>
                 </div>
+                <div id="bump-amo-section" class="carbon-card rounded-2xl p-2.5 space-y-2.5 border border-pixie-500/30">
+                    <div class="flex items-center justify-between px-0.5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-pixie-400"></span>
+                            <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-pixie-300">Bump by Amo</span>
+                        </div>
+                        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-pixie-950/90 text-pixie-300 border border-pixie-600/30">PIXMAP</span>
+                    </div>
+
+                    <div class="flex items-center gap-2.5 bg-carbon-950/85 border border-pixie-800/40 rounded-xl p-2">
+                        <canvas id="amo-pixmap-canvas" width="16" height="16" class="pixmap-canvas w-10 h-10 rounded-lg border border-pixie-500/40 bg-carbon-950 shrink-0"></canvas>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs font-semibold text-white truncate">Amo Pixmap Core</div>
+                            <div id="amo-pixmap-label" class="text-[10px] font-mono text-pixie-300/80 truncate">Sprite #1 • Purple Pulse</div>
+                        </div>
+                        <button type="button" onclick="cycleAmoPixmap()" title="Switch Pixmap" class="p-1.5 rounded-lg bg-pixie-900/60 hover:bg-pixie-600 text-pixie-200 hover:text-white transition shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </button>
+                    </div>
+
+                    <button type="button" id="bump-amo-btn" onclick="triggerBumpByAmo()" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-pixie-700 via-pixie-600 to-pixie-500 hover:from-pixie-600 hover:to-pixie-400 text-white text-xs font-bold tracking-wide shadow-md purple-glow flex items-center justify-center gap-1.5 transition">
+                        <span>⚡</span>
+                        <span>Bump by Amo</span>
+                    </button>
+                </div>
+
                 <div>
                     <div class="flex items-center justify-between px-2 mb-2">
                         <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-pixie-300/80">Direct Messages</span>
@@ -1901,6 +1930,136 @@
             const { data } = await sb.auth.getSession();
             if (data?.session?.user) await enterApp(data.session.user);
         }
+        const AMO_PIXMAPS = [
+            {
+                name: 'Sprite #1 • Purple Pulse',
+                emoji: '💜',
+                grid: [
+                    '....######......',
+                    '...########.....',
+                    '..###.####.###..',
+                    '..############..',
+                    '..############..',
+                    '...##########...',
+                    '....########....',
+                    '...##########...',
+                    '..####....####..',
+                    '.####......####.',
+                    '.###........###.',
+                    '..##........##..',
+                    '................',
+                    '................',
+                    '................',
+                    '................'
+                ],
+                palette: { '#': '#C084FC', '.': null }
+            },
+            {
+                name: 'Sprite #2 • Carbon Gem',
+                emoji: '⚡',
+                grid: [
+                    '.......##.......',
+                    '......####......',
+                    '.....######.....',
+                    '....########....',
+                    '...##########...',
+                    '..############..',
+                    '.##############.',
+                    '################',
+                    '.##############.',
+                    '..############..',
+                    '...##########...',
+                    '....########....',
+                    '.....######.....',
+                    '......####......',
+                    '.......##.......',
+                    '................'
+                ],
+                palette: { '#': '#A855F7', '.': null }
+            },
+            {
+                name: 'Sprite #3 • Amo Bot',
+                emoji: '🤖',
+                grid: [
+                    '.......##.......',
+                    '.......##.......',
+                    '...##########...',
+                    '..############..',
+                    '..##.##..##.##..',
+                    '..##.##..##.##..',
+                    '..############..',
+                    '..####....####..',
+                    '..############..',
+                    '...##########...',
+                    '....###..###....',
+                    '....###..###....',
+                    '................',
+                    '................',
+                    '................',
+                    '................'
+                ],
+                palette: { '#': '#E9D5FF', '.': null }
+            }
+        ];
+        let amoPixmapIdx = 0;
+
+        function renderAmoPixmap() {
+            const canvas = $('amo-pixmap-canvas');
+            const label = $('amo-pixmap-label');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const sprite = AMO_PIXMAPS[amoPixmapIdx % AMO_PIXMAPS.length];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            sprite.grid.forEach((row, y) => {
+                for (let x = 0; x < row.length; x++) {
+                    const color = sprite.palette[row[x]];
+                    if (color) {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x, y, 1, 1);
+                    }
+                }
+            });
+            if (label) label.textContent = sprite.name;
+        }
+
+        window.cycleAmoPixmap = () => {
+            amoPixmapIdx = (amoPixmapIdx + 1) % AMO_PIXMAPS.length;
+            renderAmoPixmap();
+            const c = $('amo-pixmap-canvas');
+            if (c) {
+                c.classList.remove('bump-anim');
+                void c.offsetWidth;
+                c.classList.add('bump-anim');
+            }
+        };
+
+        window.triggerBumpByAmo = async () => {
+            const sprite = AMO_PIXMAPS[amoPixmapIdx % AMO_PIXMAPS.length];
+            const section = $('bump-amo-section');
+            const btn = $('bump-amo-btn');
+            if (section) {
+                section.classList.remove('bump-anim');
+                void section.offsetWidth;
+                section.classList.add('bump-anim');
+            }
+            if (btn) {
+                const r = btn.getBoundingClientRect();
+                burst(r.left + r.width / 2, r.top, sprite.emoji, 10);
+            }
+            showToast(`Bump by Amo sent (${sprite.name})!`, 'success');
+            if (sb && me && activeRoom?.id) {
+                const bumpText = `⚡ Bump by Amo [${sprite.name}]`;
+                const { data, error } = await sb.from('messages')
+                    .insert({ room_id: activeRoom.id, sender_name: me.username, text: bumpText, type: 'text' })
+                    .select().single();
+                if (!error && data && activeRoom.id === data.room_id && !messages.find(m => m.id === data.id)) {
+                    messages.push(data);
+                    renderMessages(true);
+                }
+            }
+        };
+
+        renderAmoPixmap();
         boot();
     </script>
 </body>
