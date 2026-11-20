@@ -10,7 +10,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Tone.js for call ringtones (synthesized, no audio files) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <script>
@@ -307,7 +306,7 @@
                     <button onclick="copyUserId()" title="Copy Your User ID" class="p-2.5 rounded-xl bg-carbon-800/80 hover:bg-pixie-900/60 text-slate-300 hover:text-pixie-300 border border-white/10 transition hidden sm:flex">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     </button>
-                    <button onclick="toggleMembersDrawer()" title="Toggle Online Members" class="p-2.5 rounded-xl bg-carbon-800/80 hover:bg-pixie-900/60 text-slate-300 hover:text-pixie-300 border border-white/10 transition xl:hidden">
+                    <button onclick="toggleMembersDrawer()" title="Find Friends" class="p-2.5 rounded-xl bg-carbon-800/80 hover:bg-pixie-900/60 text-slate-300 hover:text-pixie-300 border border-white/10 transition xl:hidden">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                     </button>
                 </div>
@@ -350,12 +349,15 @@
 
         <aside id="right-members-drawer" class="hidden xl:flex flex-col w-64 max-w-[85vw] bg-carbon-900/80 border-l border-pixie-800/40 shrink-0">
             <div class="h-16 px-5 border-b border-pixie-800/40 flex items-center justify-between shrink-0">
-                <span class="text-xs font-bold uppercase tracking-wider text-pixie-300">Members</span>
-                <span id="right-online-count" class="text-xs font-mono bg-pixie-800/70 text-white px-2 py-0.5 rounded-full">1</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-pixie-300">Find Friends</span>
+                <span id="right-online-count" class="text-xs font-mono bg-pixie-800/70 text-white px-2 py-0.5 rounded-full">0</span>
+            </div>
+            <div class="p-3 border-b border-pixie-800/30 shrink-0">
+                <input id="friend-search-input" type="search" autocomplete="off" placeholder="Search username to add..." class="w-full bg-carbon-950 border border-pixie-700/50 focus:border-pixie-400 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none">
             </div>
             <div id="right-members-list" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
             <div class="p-3 border-t border-pixie-800/30 text-[11px] text-slate-500 font-mono text-center">
-                Open another browser / account to test chat & calls
+                Search a username above to add friends
             </div>
         </aside>
     </div>
@@ -385,7 +387,7 @@
                 <audio id="remote-audio" autoplay></audio>
 
                 <div id="call-avatar-stage" class="relative z-10 flex flex-col items-center text-center max-w-sm">
-                    <div id="call-pulse-avatar" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-pixie-600 to-pixie-950 border-2 border-pixie-400 flex items-center justify-center text-3xl sm:text-4xl font-extrabold text-white animate-pulse-ring mb-5 shadow-2xl">PX</div>
+                    <div id="call-pulse-avatar" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-pixie-600 to-pixie-950 border-2 border-pixie-400 flex items-center justify-center text-3xl sm:text-4xl font-extrabold text-white animate-pulse-ring mb-5 shadow-2xl overflow-hidden">PX</div>
                     <h4 id="call-peer-name" class="text-xl sm:text-2xl font-bold text-white mb-1">Channel Call</h4>
                     <p id="call-status-label" class="text-sm font-mono text-pixie-300">Ringing...</p>
                     <div class="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -452,6 +454,10 @@
                         <option value="away">Away</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-xs font-mono uppercase text-pixie-300 mb-1.5">Avatar Image</label>
+                    <input id="input-avatar-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="w-full bg-carbon-950 border border-pixie-700/50 focus:border-pixie-400 rounded-xl px-3.5 py-2 text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-pixie-700 file:text-white file:font-semibold hover:file:bg-pixie-600">
+                </div>
                 <div class="pt-2 flex justify-end gap-2">
                     <button type="button" onclick="closeProfileModal()" class="px-4 py-2 rounded-xl bg-carbon-800 hover:bg-carbon-700 text-slate-300 text-sm font-medium">Cancel</button>
                     <button type="submit" class="px-5 py-2 rounded-xl bg-gradient-to-r from-pixie-700 to-pixie-500 hover:from-pixie-600 hover:to-pixie-400 text-white text-sm font-bold shadow-lg">Save Profile</button>
@@ -489,12 +495,8 @@
         </div>
     </div>
 
-    <!-- Moderation vault mounts here (admins only, role is enforced by Supabase RLS) -->
     <div id="vault-overlay-mount"></div>
 
-    <!-- =================================================================== -->
-    <!-- SUPABASE ENGINE: Auth + Postgres (RLS) + Realtime + WebRTC + Push   -->
-    <!-- =================================================================== -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
@@ -515,7 +517,6 @@
         const QUICK_EMOJIS = ['🔥', '💜', '😂', '🚀', '👍', '❤️', '🎉', '👀', '⚡', '💯', '😎', '🙌'];
         const $ = (id) => document.getElementById(id);
 
-        // ---------------- State ----------------
         let authMode = 'login';
         let me = null;
         const profiles = new Map();
@@ -530,7 +531,6 @@
         let friendships = new Map();
         let friendsEnabled = false;
 
-        // Call state
         let callStarting = false;
         let pc = null, localStream = null, activeCall = null, isCaller = false, callAccepted = false;
         let remoteDescSet = false, callRowReady = false;
@@ -540,7 +540,6 @@
         let simInterval = null, simAudioCtx = null;
         let ringSynth = null, ringtoneLoop = null;
 
-        // ---------------- Helpers ----------------
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -551,6 +550,14 @@
             const parts = clean.split(/\s+/);
             if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
             return clean.slice(0, 2).toUpperCase();
+        }
+        function renderAvatarHtml(user) {
+            const initials = escapeHtml(getInitials(user?.username));
+            if (user?.avatar_url) {
+                const safeUrl = escapeHtml(user.avatar_url);
+                return `<img src="${safeUrl}" alt="${escapeHtml(user.username || 'Avatar')}" class="w-full h-full object-cover rounded-[inherit]" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${initials}'}))">`;
+            }
+            return `<span>${initials}</span>`;
         }
         const getDmRoomId = (a, b) => 'dm_' + [String(a), String(b)].sort().join('__');
         function formatTime(ts) {
@@ -576,7 +583,6 @@
             }, 3400);
         }
 
-        // ---------------- Push Notifications & Deep Links ----------------
         const baseTitle = document.title;
         const lsGet = (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } };
         const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
@@ -635,7 +641,40 @@
         }
 
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => {});
+            const swCode = `
+                self.addEventListener("push", (event) => {
+                    let payload = { title: "PIXIECHAT", body: "New activity", roomId: null, callId: null };
+                    try { if (event.data) payload = { ...payload, ...event.data.json() }; } catch (_) {}
+                    const url = new URL("./", self.registration.scope);
+                    if (payload.callId) url.searchParams.set("callId", payload.callId);
+                    if (payload.roomId) url.searchParams.set("roomId", payload.roomId);
+                    event.waitUntil(self.registration.showNotification(payload.title, {
+                        body: payload.body,
+                        tag: payload.callId ? "call" : (payload.roomId ? "msg-" + payload.roomId : "pixiechat"),
+                        renotify: true,
+                        requireInteraction: Boolean(payload.callId),
+                        vibrate: payload.callId ? [300, 150, 300, 150, 300] : [120],
+                        data: { url: url.toString(), roomId: payload.roomId, callId: payload.callId }
+                    }));
+                });
+                self.addEventListener("notificationclick", (event) => {
+                    event.notification.close();
+                    const data = event.notification.data || {};
+                    const targetUrl = data.url || "./";
+                    event.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(async (clientList) => {
+                        for (const client of clientList) {
+                            if ("focus" in client) {
+                                await client.focus();
+                                client.postMessage(data.callId ? { type: "PIXIECHAT_OPEN_CALL", callId: data.callId } : { roomId: data.roomId });
+                                return;
+                            }
+                        }
+                        if (clients.openWindow) return clients.openWindow(targetUrl);
+                    }));
+                });
+            `;
+            const swUrl = URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }));
+            navigator.serviceWorker.register(swUrl).then(r => { swReg = r; }).catch(() => {});
             navigator.serviceWorker.addEventListener('message', (e) => {
                 if (e.data?.type === 'PIXIECHAT_OPEN_CALL' && e.data.callId) openIncomingCallById(e.data.callId);
                 else if (e.data && e.data.roomId) openRoomById(e.data.roomId);
@@ -665,7 +704,6 @@
             if (u) switchRoom({ id: roomId, name: u.username, type: 'dm', desc: u.status || 'Direct conversation', targetUid: u.id });
         }
 
-        // Ripple on tap + emoji particle bursts
         document.addEventListener('pointerdown', (e) => {
             const b = e.target.closest('button'); if (!b || b.disabled || getComputedStyle(b).position !== 'static') return;
             b.classList.add('ripple-host');
@@ -688,7 +726,6 @@
         const anim = (m) => { if (seenMsgIds.has(m.id)) return ''; seenMsgIds.add(m.id); return 'msg-enter'; };
         const errText = (e) => (e && (e.message || e.error_description)) || 'Unknown error';
 
-        // ---------------- Audio (ringtone) ----------------
         function unlockAudioContext() {
             try { if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') Tone.start().catch(() => {}); } catch (_) {}
         }
@@ -724,7 +761,6 @@
             if (ringSynth) { try { ringSynth.dispose(); } catch (_) {} ringSynth = null; }
         }
 
-        // ---------------- Auth UI ----------------
         window.toggleAuthPasswordVisibility = () => {
             const p = $('auth-password'); p.type = p.type === 'password' ? 'text' : 'password';
         };
@@ -868,7 +904,6 @@
             showToast('Signed out of PIXIECHAT.', 'info');
         };
 
-        // ---------------- Data loading ----------------
         async function loadChannels() {
             const { data, error } = await sb.from('channels').select('*').order('created_at');
             if (error) return showToast('Could not load channels: ' + errText(error), 'error');
@@ -883,7 +918,6 @@
             renderUsersLists();
         }
 
-        // ---------------- Friends ----------------
         const friendState = (uid) => { const f = friendships.get(uid); return !f ? 'none' : f.status === 'accepted' ? 'friend' : f.incoming ? 'received' : 'sent'; };
         const canDirect = (uid) => !friendsEnabled || friendState(uid) === 'friend';
         async function loadFriendships() {
@@ -904,7 +938,6 @@
         };
         document.addEventListener('click', (e) => { const b = e.target.closest('[data-fa]'); if (b) friendAction(b.dataset.uid, b.dataset.fa); });
 
-        // ---------------- Realtime ----------------
         function subscribeRealtime() {
             if (dbChannel) sb.removeChannel(dbChannel);
             dbChannel = sb.channel('pixie-db')
@@ -973,18 +1006,25 @@
             }
         }
 
-        // ---------------- Profile / UI modals ----------------
         function updateMyProfileUI() {
             $('my-display-name').textContent = me.username || 'PixieUser';
             $('my-custom-status').textContent = me.status || 'Online & Ready';
-            $('my-avatar-initials').textContent = getInitials(me.username);
-            $('my-status-dot').className = `absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-carbon-950 ${
-                me.presence === 'dnd' ? 'bg-rose-500' : me.presence === 'away' ? 'bg-amber-400' : 'bg-emerald-400'}`;
+            const dot = $('my-status-dot');
+            if (dot) {
+                dot.className = `absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-carbon-950 ${
+                    me.presence === 'dnd' ? 'bg-rose-500' : me.presence === 'away' ? 'bg-amber-400' : 'bg-emerald-400'}`;
+            }
+            const av = $('my-avatar');
+            if (av) {
+                av.innerHTML = renderAvatarHtml(me);
+                if (dot) av.appendChild(dot);
+            }
         }
         window.openProfileModal = () => {
             $('input-username').value = me.username || '';
             $('input-status').value = me.status || '';
             $('input-presence').value = me.presence || 'online';
+            const f = $('input-avatar-file'); if (f) f.value = '';
             $('profile-modal').classList.remove('hidden'); $('profile-modal').classList.add('flex');
         };
         window.closeProfileModal = () => { $('profile-modal').classList.add('hidden'); $('profile-modal').classList.remove('flex'); };
@@ -994,10 +1034,24 @@
             const username = $('input-username').value.trim();
             const status = $('input-status').value.trim() || 'Online & Ready';
             const presence = $('input-presence').value;
+            const file = $('input-avatar-file')?.files?.[0];
             if (username.length < 3) return showToast('Username must be at least 3 characters.', 'error');
-            const { data, error } = await sb.from('profiles').update({ username, status, presence }).eq('id', me.id).select().single();
+
+            let avatar_url = me.avatar_url || null;
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) return showToast('Avatar must be 2 MB or smaller.', 'error');
+                const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '');
+                const filePath = `${me.id}/avatar.${ext || 'png'}`;
+                const { error: upErr } = await sb.storage.from('avatars').upload(filePath, file, { upsert: true, contentType: file.type });
+                if (upErr) return showToast('Avatar upload failed: ' + errText(upErr), 'error');
+                const { data: pub } = sb.storage.from('avatars').getPublicUrl(filePath);
+                avatar_url = `${pub.publicUrl}?t=${Date.now()}`;
+            }
+
+            const { data, error } = await sb.from('profiles').update({ username, status, presence, avatar_url }).eq('id', me.id).select().single();
             if (error) return showToast('Could not save profile: ' + errText(error), 'error');
             me = data; profiles.set(me.id, me);
+            if ($('input-avatar-file')) $('input-avatar-file').value = '';
             updateMyProfileUI(); renderUsersLists(); closeProfileModal();
             showToast('Profile updated!', 'success');
         });
@@ -1032,6 +1086,7 @@
             ['flex', 'fixed', 'inset-y-0', 'right-0', 'z-40', 'shadow-2xl'].forEach(c => d.classList.toggle(c, hidden));
             d.classList.toggle('hidden', !hidden);
             $('mobile-sidebar-backdrop').classList.toggle('hidden', !hidden);
+            if (hidden) setTimeout(() => $('friend-search-input')?.focus(), 50);
         };
         window.closePanels = () => {
             toggleMobileSidebar(false);
@@ -1053,7 +1108,6 @@
             if (typeof force === 'boolean') pop.classList.toggle('hidden', !force); else pop.classList.toggle('hidden');
         };
 
-        // ---------------- Sidebar rendering ----------------
         function renderChannelsList() {
             const c = $('channels-list'); if (!c) return;
             c.innerHTML = '';
@@ -1086,12 +1140,13 @@
         function renderUsersLists() {
             const dm = $('dm-users-list'), right = $('right-members-list');
             if (!dm || !right || !me) return;
+
+            const query = ($('friend-search-input')?.value || '').trim().toLowerCase();
             const list = Array.from(profiles.values())
                 .filter(u => !u.banned)
                 .map(u => ({ ...u, isOnline: u.id === me.id || onlineIds.has(u.id) }))
                 .sort((a, b) => (b.isOnline - a.isOnline) || (a.username || '').localeCompare(b.username || ''));
 
-            $('right-online-count').textContent = String(list.filter(u => u.isOnline).length);
             dm.innerHTML = ''; right.innerHTML = '';
             const rq = $('friend-requests'); rq.innerHTML = '';
             list.filter(u => u.id !== me.id && friendState(u.id) === 'received').forEach(u => {
@@ -1105,7 +1160,7 @@
 
             const others = list.filter(u => u.id !== me.id && canDirect(u.id));
             if (others.length === 0) {
-                dm.innerHTML = `<div class="px-3 py-2 text-xs text-slate-500 italic">No friends yet. Open Members (top right) and tap Add to invite someone to text & call.</div>`;
+                dm.innerHTML = `<div class="px-3 py-2 text-xs text-slate-500 italic">No friends yet. Search a username to add someone.</div>`;
             }
             others.forEach(u => {
                 const dmId = getDmRoomId(me.id, u.id);
@@ -1118,8 +1173,8 @@
                     : 'text-slate-300 hover:text-white hover:bg-pixie-900/35'}`;
                 btn.innerHTML = `
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-7 h-7 rounded-lg bg-pixie-900/80 border border-pixie-600/30 flex items-center justify-center text-xs font-bold text-pixie-200 relative shrink-0">
-                            ${escapeHtml(getInitials(u.username))}
+                        <div class="w-7 h-7 rounded-lg bg-pixie-900/80 border border-pixie-600/30 flex items-center justify-center text-xs font-bold text-pixie-200 relative shrink-0 overflow-hidden">
+                            ${renderAvatarHtml(u)}
                             <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ${statusColor(u, u.isOnline)} border-2 border-carbon-950"></span>
                         </div>
                         <span class="truncate font-medium">${escapeHtml(u.username)}</span>
@@ -1132,49 +1187,60 @@
                 dm.appendChild(btn);
             });
 
-            list.forEach(u => {
-                const self = u.id === me.id;
+            if (!query) {
+                $('right-online-count').textContent = '0';
+                right.innerHTML = `<div class="py-8 px-3 text-center text-xs text-slate-500 font-mono">Search a username above to find and add friends.</div>`;
+                return;
+            }
+
+            const matches = list.filter(u => u.id !== me.id && (u.username || '').toLowerCase().includes(query));
+            $('right-online-count').textContent = String(matches.length);
+
+            if (!matches.length) {
+                right.innerHTML = `<div class="py-8 px-3 text-center text-xs text-slate-500 font-mono">No users matching "${escapeHtml(query)}".</div>`;
+                return;
+            }
+
+            matches.forEach(u => {
                 const card = document.createElement('div');
                 card.className = 'carbon-card rounded-2xl p-2.5 flex items-center justify-between gap-2';
                 card.innerHTML = `
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-pixie-700 to-pixie-950 flex items-center justify-center text-xs font-bold text-white relative shrink-0 border border-pixie-500/30">
-                            ${escapeHtml(getInitials(u.username))}
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-pixie-700 to-pixie-950 flex items-center justify-center text-xs font-bold text-white relative shrink-0 border border-pixie-500/30 overflow-hidden">
+                            ${renderAvatarHtml(u)}
                             <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ${statusColor(u, u.isOnline)} border-2 border-carbon-950"></span>
                         </div>
                         <div class="min-w-0">
-                            <div class="text-xs font-semibold text-white truncate">${escapeHtml(u.username)} ${self ? '<span class="text-[10px] font-mono text-pixie-400">(You)</span>' : ''}</div>
+                            <div class="text-xs font-semibold text-white truncate">${escapeHtml(u.username)}</div>
                             <div class="text-[11px] text-slate-400 truncate">${escapeHtml(u.status || (u.isOnline ? 'Online' : 'Offline'))}</div>
                         </div>
                     </div>`;
-                if (!self) {
-                    const st = friendsEnabled ? friendState(u.id) : 'friend';
-                    const bc = 'px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 transition ';
-                    const uid = escapeHtml(u.id);
-                    if (st === 'friend') {
-                        const cb = document.createElement('button');
-                        cb.type = 'button'; cb.title = `Video Call ${u.username}`;
-                        cb.className = 'p-2 rounded-xl bg-pixie-800/60 hover:bg-pixie-600 text-pixie-300 hover:text-white transition shrink-0';
-                        cb.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>`;
-                        cb.onclick = async () => {
-                            await switchRoom({ id: getDmRoomId(me.id, u.id), name: u.username, type: 'dm', desc: u.status || 'Direct conversation', targetUid: u.id });
-                            if ($('right-members-drawer').classList.contains('fixed')) closePanels();
-                            initiateCall('video');
-                        };
-                        card.appendChild(cb);
-                    } else {
-                        const w = document.createElement('div'); w.className = 'flex gap-1 shrink-0';
-                        w.innerHTML = st === 'none' ? `<button type="button" data-fa="add" data-uid="${uid}" class="${bc}bg-pixie-600 hover:bg-pixie-500 text-white">Add friend</button>`
-                            : st === 'sent' ? `<button type="button" data-fa="cancel" data-uid="${uid}" class="${bc}bg-carbon-800 text-slate-300">Pending ✕</button>`
-                            : `<button type="button" data-fa="accept" data-uid="${uid}" class="${bc}bg-emerald-600 text-white">Accept</button><button type="button" data-fa="decline" data-uid="${uid}" class="${bc}bg-carbon-800 text-slate-300">✕</button>`;
-                        card.appendChild(w);
-                    }
+
+                const st = friendsEnabled ? friendState(u.id) : 'friend';
+                const bc = 'px-2.5 py-1.5 rounded-xl text-[11px] font-bold shrink-0 transition ';
+                const uid = escapeHtml(u.id);
+                if (st === 'friend') {
+                    const cb = document.createElement('button');
+                    cb.type = 'button'; cb.title = `Video Call ${u.username}`;
+                    cb.className = 'p-2 rounded-xl bg-pixie-800/60 hover:bg-pixie-600 text-pixie-300 hover:text-white transition shrink-0';
+                    cb.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>`;
+                    cb.onclick = async () => {
+                        await switchRoom({ id: getDmRoomId(me.id, u.id), name: u.username, type: 'dm', desc: u.status || 'Direct conversation', targetUid: u.id });
+                        if ($('right-members-drawer').classList.contains('fixed')) closePanels();
+                        initiateCall('video');
+                    };
+                    card.appendChild(cb);
+                } else {
+                    const w = document.createElement('div'); w.className = 'flex gap-1 shrink-0';
+                    w.innerHTML = st === 'none' ? `<button type="button" data-fa="add" data-uid="${uid}" class="${bc}bg-pixie-600 hover:bg-pixie-500 text-white">Add friend</button>`
+                        : st === 'sent' ? `<button type="button" data-fa="cancel" data-uid="${uid}" class="${bc}bg-carbon-800 text-slate-300">Pending ✕</button>`
+                        : `<button type="button" data-fa="accept" data-uid="${uid}" class="${bc}bg-emerald-600 text-white">Accept</button><button type="button" data-fa="decline" data-uid="${uid}" class="${bc}bg-carbon-800 text-slate-300">✕</button>`;
+                    card.appendChild(w);
                 }
                 right.appendChild(card);
             });
         }
 
-        // ---------------- Rooms & messages ----------------
         async function switchRoom(room) {
             activeRoom = room;
             unread[room.id] = 0;
@@ -1311,9 +1377,6 @@
             showToast('Copied User ID', 'success');
         };
 
-        // ===================================================================
-        // MODERATION VAULT (admins only — enforced by RLS + SECURITY DEFINER RPCs)
-        // ===================================================================
         window.mountAndOpenVault = async () => {
             if (!me || me.role !== 'admin') return;
             const mount = $('vault-overlay-mount');
@@ -1397,7 +1460,7 @@
                 tr.className = 'hover:bg-pixie-900/20 transition';
                 tr.innerHTML = `
                     <td class="py-3 px-3"><div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-xl bg-pixie-900 border border-pixie-600/40 flex items-center justify-center text-xs font-bold text-white shrink-0">${escapeHtml(getInitials(p.username))}</div>
+                        <div class="w-8 h-8 rounded-xl bg-pixie-900 border border-pixie-600/40 flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden">${renderAvatarHtml(p)}</div>
                         <div class="min-w-0"><div class="font-semibold text-white truncate">${escapeHtml(p.username)}</div>
                         <div class="text-[11px] text-slate-400 truncate">${escapeHtml(p.status || '')}</div></div></div></td>
                     <td class="py-3 px-3"><span class="inline-flex items-center gap-1.5 text-xs font-mono ${online ? 'text-emerald-400' : 'text-slate-500'}">
@@ -1450,9 +1513,6 @@
             }
         });
 
-        // ===================================================================
-        // CALLS — WebRTC with Supabase signalling (calls + call_candidates)
-        // ===================================================================
         function createSimulatedMediaStream(wantVideo) {
             const tracks = [];
             try {
@@ -1579,10 +1639,11 @@
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
 
+                const targetProfile = activeRoom.targetUid ? profiles.get(activeRoom.targetUid) : null;
                 $('call-modal-title').textContent = `PIXIECHAT // ${mode === 'video' ? 'Video' : 'Voice'} Call`;
                 $('call-modal-subtitle').textContent = `Calling ${activeRoom.type === 'channel' ? '#' : '@'}${activeRoom.name}...`;
                 $('call-peer-name').textContent = `${activeRoom.type === 'channel' ? '#' : ''}${activeRoom.name}`;
-                $('call-pulse-avatar').textContent = getInitials(activeRoom.name);
+                $('call-pulse-avatar').innerHTML = renderAvatarHtml(targetProfile || { username: activeRoom.name });
                 $('call-status-label').textContent = 'Ringing...';
                 $('banner-call-text').textContent = `Call in ${activeRoom.name}`;
                 $('incoming-call-controls').classList.add('hidden');
@@ -1633,10 +1694,11 @@
 
         function presentIncomingCall(call) {
             activeCall = call; isCaller = false; callAccepted = false; callRowReady = true;
+            const callerProfile = profiles.get(call.caller_id);
             $('call-modal-title').textContent = `Incoming ${call.mode === 'video' ? 'Video' : 'Voice'} Call`;
             $('call-modal-subtitle').textContent = `From ${call.caller_name}`;
             $('call-peer-name').textContent = call.caller_name;
-            $('call-pulse-avatar').textContent = getInitials(call.caller_name);
+            $('call-pulse-avatar').innerHTML = renderAvatarHtml(callerProfile || { username: call.caller_name });
             $('call-status-label').textContent = 'Incoming Call...';
             $('banner-call-text').textContent = `Call with ${call.caller_name}`;
             $('incoming-call-controls').classList.remove('hidden');
@@ -1810,9 +1872,6 @@
             $('call-modal').classList.add('hidden'); $('call-modal').classList.remove('flex');
         }
 
-        // ===================================================================
-        // MOBILE: keyboard-aware height + refresh after the tab was backgrounded
-        // ===================================================================
         if (window.visualViewport) {
             const sync = () => { document.documentElement.style.setProperty('--app-h', window.visualViewport.height + 'px'); window.scrollTo(0, 0); };
             window.visualViewport.addEventListener('resize', sync); sync();
@@ -1830,11 +1889,9 @@
             } catch (_) {}
         });
 
-        // ===================================================================
-        // BOOT
-        // ===================================================================
         async function boot() {
             populateEmojiGrid();
+            $('friend-search-input')?.addEventListener('input', renderUsersLists);
             if (!sb) { $('auth-config-banner').classList.remove('hidden'); return; }
 
             sb.auth.onAuthStateChange((event) => {
@@ -1848,4 +1905,3 @@
     </script>
 </body>
 </html>
-
