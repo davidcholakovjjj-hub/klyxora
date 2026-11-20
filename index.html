@@ -71,10 +71,11 @@
         .mirror-video { transform: scaleX(-1); }
         html { height: var(--app-h, 100dvh); }
         input, textarea, select { -webkit-user-select: text; user-select: text; }
-        @media (max-width: 639px) { input, textarea, select { font-size: 16px !important; } } /* stops iOS focus-zoom */
-        @media (hover: none) { .react-bar { opacity: 1 !important; } } /* reactions need hover; show on touch */
+        @media (max-width: 639px) { input, textarea, select { font-size: 16px !important; } }
+        @media (hover: none) { .react-bar { opacity: 1 !important; } }
         #messages-container { overscroll-behavior: contain; }
         button, [onclick] { touch-action: manipulation; }
+
         /* ===== ANIMATIONS ===== */
         @keyframes modalPop{from{opacity:0;transform:translateY(24px) scale(.92)}to{opacity:1;transform:none}}
         @keyframes slideR{from{opacity:0;transform:translateX(30px) scale(.95)}to{opacity:1;transform:none}}
@@ -94,6 +95,9 @@
         @keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.7)}70%{box-shadow:0 0 0 6px rgba(52,211,153,0)}}
         @keyframes bellRing{0%,100%{rotate:0deg}20%{rotate:18deg}40%{rotate:-16deg}60%{rotate:10deg}80%{rotate:-6deg}}
         @keyframes fly{40%{transform:translate(18px,-18px) rotate(45deg) scale(.5);opacity:0}41%{transform:translate(-18px,18px) rotate(45deg);opacity:0}100%{transform:rotate(45deg);opacity:1}}
+        @keyframes neonScan{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes bannerSlideDown{from{opacity:0;transform:translateY(-100%)}to{opacity:1;transform:translateY(0)}}
+
         .orb{position:fixed;border-radius:9999px;filter:blur(80px);pointer-events:none;z-index:0;animation:floatOrb 16s ease-in-out infinite}
         #auth-gateway>div{animation:modalPop .7s cubic-bezier(.2,1.2,.3,1)}
         #auth-gateway h1,#left-sidebar .font-extrabold{background-size:220% auto;animation:shimmer 3.5s ease-in-out infinite alternate}
@@ -102,6 +106,10 @@
         #profile-modal:not(.hidden)>div,#channel-modal:not(.hidden)>div,#call-modal:not(.hidden)>div,#stealth-vault-modal:not(.hidden)>div{animation:modalPop .4s cubic-bezier(.2,1.2,.3,1)}
         #emoji-popover:not(.hidden){animation:modalPop .25s;transform-origin:bottom left}
         #toast-container>div{animation:toastIn .45s cubic-bezier(.2,1,.3,1)}
+        #active-call-banner:not(.hidden){
+            animation:bannerSlideDown .35s cubic-bezier(.2,1.2,.3,1), neonScan 3.5s linear infinite;
+            background-size:220% 100%;
+        }
         .items-end.msg-enter{animation:slideR .35s cubic-bezier(.2,1,.3,1) both}
         .items-start.msg-enter{animation:slideL .35s cubic-bezier(.2,1,.3,1) both}
         header button[title="Start Video Call"]{animation:glowPulse 2.6s ease-in-out infinite}
@@ -125,10 +133,12 @@
         @media (hover:hover){
             button:hover:not(:disabled){transform:translateY(-1px)}
             #channels-list button:hover,#dm-users-list button:hover{transform:translateX(5px)}
+            #right-members-list .carbon-card:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.42)}
             .react-bar button:hover{transform:scale(1.4) translateY(-3px)}
             #messages-container .group>div.relative{transition:transform .2s}
             #messages-container .group>div.relative:hover{transform:translateY(-2px) scale(1.012)}
         }
+        #right-members-list .carbon-card{transition:transform .2s cubic-bezier(.2,1.2,.3,1),border-color .2s}
         .ripple-host{position:relative;overflow:hidden}
         .ripple{position:absolute;border-radius:9999px;background:rgba(255,255,255,.35);transform:scale(0);animation:rippleOut .65s ease-out forwards;pointer-events:none}
         .burst{position:fixed;z-index:200;pointer-events:none;font-size:20px;animation:burst .95s ease-out forwards}
@@ -142,6 +152,7 @@
     <div class="orb" style="width:340px;height:340px;top:-90px;left:-70px;background:rgba(147,51,234,.35)"></div>
     <div class="orb" style="width:420px;height:420px;bottom:-140px;right:-100px;background:rgba(88,28,135,.45);animation-delay:-6s"></div>
     <div class="orb" style="width:260px;height:260px;top:45%;left:55%;background:rgba(192,132,252,.18);animation-delay:-11s"></div>
+
     <!-- AUTH GATEWAY -->
     <div id="auth-gateway" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
         <div class="carbon-surface w-full max-w-md rounded-3xl p-6 sm:p-8 border border-pixie-500/40 shadow-[0_0_60px_-12px_rgba(147,51,234,0.65)] relative overflow-hidden">
@@ -196,21 +207,7 @@
                 <button type="submit" id="auth-submit-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-pixie-700 via-pixie-600 to-pixie-500 hover:from-pixie-600 hover:to-pixie-400 text-white font-bold text-sm tracking-wide shadow-lg purple-glow transition transform active:scale-[0.99] mt-2">Enter PIXIECHAT</button>
             </form>
         </div>
-    </div><button id="google-login-btn">Log in with Google</button>
-
-<script>
-  document.getElementById('google-login-btn').addEventListener('click', async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + window.location.pathname,
-      },
-    });
-  });
-</script>
-
-
-    
+    </div>
 
     <!-- MAIN APP SHELL -->
     <div id="app-shell" class="hidden carbon-surface w-full max-w-7xl h-full sm:h-[94vh] sm:rounded-3xl flex overflow-hidden shadow-2xl relative">
@@ -316,7 +313,7 @@
                 </div>
             </header>
 
-            <div id="active-call-banner" class="hidden bg-gradient-to-r from-pixie-900 via-pixie-800 to-pixie-900 border-b border-pixie-500/40 px-4 py-2.5 flex items-center justify-between gap-3 shrink-0">
+            <div id="active-call-banner" class="hidden bg-gradient-to-r from-pixie-900 via-pixie-700 to-pixie-900 border-b border-pixie-500/40 px-4 py-2.5 flex items-center justify-between gap-3 shrink-0">
                 <div class="flex items-center gap-3">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                     <span id="banner-call-text" class="text-xs sm:text-sm font-semibold text-white">Live Call in Progress</span>
@@ -384,7 +381,6 @@
 
             <div class="relative flex-1 bg-carbon-950 min-h-[220px] sm:min-h-[420px] flex items-center justify-center overflow-hidden p-4">
                 <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#9333EA 1px, transparent 1px); background-size: 20px 20px;"></div>
-                <!-- Video element is muted; sound is played by the dedicated <audio> element below -->
                 <video id="remote-video" autoplay muted playsinline class="hidden w-full h-full object-cover rounded-2xl border border-pixie-600/40"></video>
                 <audio id="remote-audio" autoplay></audio>
 
@@ -497,18 +493,15 @@
     <div id="vault-overlay-mount"></div>
 
     <!-- =================================================================== -->
-    <!-- SUPABASE ENGINE: Auth + Postgres (RLS) + Realtime + WebRTC          -->
+    <!-- SUPABASE ENGINE: Auth + Postgres (RLS) + Realtime + WebRTC + Push   -->
     <!-- =================================================================== -->
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-        // ---------------------------------------------------------------
-        // CONFIG — Supabase Dashboard > Project Settings > API
-        // (the anon key is public by design; security comes from RLS)
-        // ---------------------------------------------------------------
-const SUPABASE_URL = 'https://qknbgyexxnglvyyotwhz.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
-        const EMAIL_DOMAIN = 'pixiechat.app'; // usernames map to <username>@pixiechat.app
+        const SUPABASE_URL = 'https://qknbgyexxnglvyyotwhz.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
+        const EMAIL_DOMAIN = 'pixiechat.app';
+        const VAPID_PUBLIC = 'BFxzaIXxSBIziodxuAXd0NsWe5Ycf9FN8qE00IUKPA_FMjysuc5WOtolkqJvQ4AEBCsF0I2R74JqpAu9DGqlJ7w';
 
         const configured = !SUPABASE_URL.includes('YOUR-PROJECT') && !SUPABASE_ANON_KEY.includes('YOUR-ANON-KEY');
         const sb = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { realtime: { params: { eventsPerSecond: 20 } } }) : null;
@@ -517,7 +510,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' }
-                // For users behind strict NATs add a TURN server here.
             ]
         };
         const QUICK_EMOJIS = ['🔥', '💜', '😂', '🚀', '👍', '❤️', '🎉', '👀', '⚡', '💯', '😎', '🙌'];
@@ -525,18 +517,18 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
 
         // ---------------- State ----------------
         let authMode = 'login';
-        let me = null;                       // my profile row
-        const profiles = new Map();          // id -> profile
+        let me = null;
+        const profiles = new Map();
         let channels = [];
-        let messages = [];                   // messages of the active room
+        let messages = [];
         let unread = {};
         let onlineIds = new Set();
         let activeRoom = { id: 'general', name: 'general', type: 'channel', desc: 'Main lobby for all PixieChat members', targetUid: null };
         let roomLoadToken = 0;
         let dbChannel = null, presenceChannel = null;
         let adminCounts = new Map();
-        let friendships = new Map();         // otherUserId -> { id, status, incoming }
-        let friendsEnabled = false;          // true once the friendships table exists
+        let friendships = new Map();
+        let friendsEnabled = false;
 
         // Call state
         let callStarting = false;
@@ -583,19 +575,18 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
                 setTimeout(() => toast.remove(), 260);
             }, 3400);
         }
+
+        // ---------------- Push Notifications & Deep Links ----------------
         const baseTitle = document.title;
         const lsGet = (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } };
         const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
         const ICON = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#24053D"/><path d="M32 8l16 17-16 31L16 25z" fill="#A855F7"/></svg>');
         let swReg = null, unseenCount = 0, callNotif = null;
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => {});
-            navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.roomId) openRoomById(e.data.roomId); });
-        }
-        const notifOn = () => 'Notification' in window && Notification.permission === 'granted' && lsGet('px_notif') !== 'off';
-        const VAPID_PUBLIC = 'BFxzaIXxSBIziodxuAXd0NsWe5Ycf9FN8qE00IUKPA_FMjysuc5WOtolkqJvQ4AEBCsF0I2R74JqpAu9DGqlJ7w';
-        const b64ToBytes = (b) => { const p = '='.repeat((4 - b.length % 4) % 4), r = atob((b + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, c => c.charCodeAt(0)); };
-        // Web Push: lets the server wake your phone for calls/messages even when the page is closed
+        const b64ToBytes = (b) => {
+            const p = '='.repeat((4 - b.length % 4) % 4), r = atob((b + p).replace(/-/g, '+').replace(/_/g, '/'));
+            return Uint8Array.from(r, c => c.charCodeAt(0));
+        };
+
         async function subscribePush() {
             if (!me || !('PushManager' in window) || !notifOn()) return;
             try {
@@ -603,17 +594,25 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
                 let sub = await reg.pushManager.getSubscription();
                 if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(VAPID_PUBLIC) });
                 const j = sub.toJSON();
-                const { error } = await sb.from('pixie_push_subs').upsert({ user_id: me.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: 'endpoint' });
+                const { error } = await sb.from('pixie_push_subs').upsert(
+                    { user_id: me.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth },
+                    { onConflict: 'endpoint' }
+                );
                 if (error) console.warn('push sub save failed', error.message);
             } catch (e) { console.warn('push subscribe failed', e); }
         }
+
         async function unsubscribePush() {
             try {
-                const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription();
+                const reg = await navigator.serviceWorker.ready;
+                const sub = await reg.pushManager.getSubscription();
                 if (sub) await sb.from('pixie_push_subs').delete().eq('endpoint', sub.endpoint);
             } catch (_) {}
         }
+
+        const notifOn = () => 'Notification' in window && Notification.permission === 'granted' && lsGet('px_notif') !== 'off';
         function updateBell() { const d = $('notif-dot'); if (d) d.classList.toggle('hidden', !notifOn()); }
+
         window.toggleNotifications = async () => {
             if (!('Notification' in window)) return showToast('This browser does not support notifications.', 'error');
             if (Notification.permission === 'denied') return showToast('Notifications are blocked. Allow them in your browser site settings.', 'error');
@@ -628,24 +627,44 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             if (wasOn) unsubscribePush(); else subscribePush();
             showToast(wasOn ? 'Notifications muted.' : 'Notifications on.', 'info');
         };
-        // Only notifies when the tab is hidden or unfocused (the in-app UI covers the rest)
-        async function notify(title, body, { tag, roomId, urgent } = {}) {
+
+        async function openIncomingCallById(callId) {
+            if (!callId || !me || activeCall) return;
+            const { data: call } = await sb.from('calls').select('*').eq('id', callId).eq('status', 'ringing').maybeSingle();
+            if (call && call.caller_id !== me.id && isFresh(call)) presentIncomingCall(call);
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(r => { swReg = r; }).catch(() => {});
+            navigator.serviceWorker.addEventListener('message', (e) => {
+                if (e.data?.type === 'PIXIECHAT_OPEN_CALL' && e.data.callId) openIncomingCallById(e.data.callId);
+                else if (e.data && e.data.roomId) openRoomById(e.data.roomId);
+            });
+        }
+
+        async function notify(title, body, { tag, roomId, callId, urgent } = {}) {
             if (!notifOn() || me?.presence === 'dnd') return null;
             if (!document.hidden && document.hasFocus()) return null;
-            const opts = { body, tag, renotify: !!tag, icon: ICON, badge: ICON, vibrate: urgent ? [300, 150, 300, 150, 300] : [120], requireInteraction: !!urgent, data: { roomId } };
+            const opts = { body, tag, renotify: !!tag, icon: ICON, badge: ICON, vibrate: urgent ? [300, 150, 300, 150, 300] : [120], requireInteraction: !!urgent, data: { roomId, callId } };
             try {
                 if (swReg && swReg.showNotification) { await swReg.showNotification(title, opts); return null; }
                 const n = new Notification(title, opts);
-                n.onclick = () => { window.focus(); n.close(); if (roomId) openRoomById(roomId); };
+                n.onclick = () => {
+                    window.focus(); n.close();
+                    if (callId) openIncomingCallById(callId);
+                    else if (roomId) openRoomById(roomId);
+                };
                 return n;
             } catch (_) { return null; }
         }
+
         function openRoomById(roomId) {
             const ch = channels.find(c => c.id === roomId);
             if (ch) return switchRoom({ id: ch.id, name: ch.name, type: 'channel', desc: ch.description || 'PixieChat channel', targetUid: null });
             const u = Array.from(profiles.values()).find(x => me && x.id !== me.id && getDmRoomId(me.id, x.id) === roomId);
             if (u) switchRoom({ id: roomId, name: u.username, type: 'dm', desc: u.status || 'Direct conversation', targetUid: u.id });
         }
+
         // Ripple on tap + emoji particle bursts
         document.addEventListener('pointerdown', (e) => {
             const b = e.target.closest('button'); if (!b || b.disabled || getComputedStyle(b).position !== 'static') return;
@@ -656,6 +675,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             b.appendChild(sp);
             setTimeout(() => { sp.remove(); if (!b.querySelector('.ripple')) b.classList.remove('ripple-host'); }, 680);
         }, { passive: true });
+
         function burst(x, y, emoji = '💜', n = 10) {
             for (let i = 0; i < n; i++) {
                 const el = document.createElement('span'); el.className = 'burst'; el.textContent = emoji;
@@ -791,9 +811,14 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             $('auth-ban-banner').classList.add('hidden');
             $('auth-gateway').classList.add('hidden');
             $('app-shell').classList.remove('hidden');
-            ['channels-list', 'dm-users-list', 'right-members-list'].forEach(id => { const el = $(id); el.classList.add('intro'); setTimeout(() => el.classList.remove('intro'), 1600); });
+            ['channels-list', 'dm-users-list', 'right-members-list'].forEach(id => {
+                const el = $(id); el.classList.add('intro');
+                setTimeout(() => el.classList.remove('intro'), 1600);
+            });
             updateBell(); subscribePush();
-            if ('Notification' in window && Notification.permission === 'default') setTimeout(() => showToast('Tap the 🔔 in the header to enable message & call notifications.', 'info'), 1800);
+            if ('Notification' in window && Notification.permission === 'default') {
+                setTimeout(() => showToast('Tap the 🔔 in the header to enable message & call notifications.', 'info'), 1800);
+            }
             $('admin-btn').classList.toggle('hidden', me.role !== 'admin');
             updateMyProfileUI();
 
@@ -801,7 +826,20 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             subscribeRealtime();
             joinPresence();
             switchRoom(activeRoom);
-            checkPendingCalls();
+
+            const params = new URLSearchParams(window.location.search);
+            const urlCallId = params.get('callId');
+            const urlRoomId = params.get('roomId');
+            if (urlRoomId) openRoomById(urlRoomId);
+            if (urlCallId) {
+                await openIncomingCallById(urlCallId);
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete('callId');
+                cleanUrl.searchParams.delete('roomId');
+                window.history.replaceState({}, '', cleanUrl.toString());
+            } else {
+                checkPendingCalls();
+            }
         }
 
         function teardownSession() {
@@ -859,7 +897,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             const f = friendships.get(uid); let error;
             if (act === 'add') ({ error } = await sb.from('pixie_friendships').insert({ addressee: uid }));
             else if (act === 'accept' && f) ({ error } = await sb.from('pixie_friendships').update({ status: 'accepted' }).eq('id', f.id));
-            else if (f) ({ error } = await sb.from('pixie_friendships').delete().eq('id', f.id)); // decline / cancel / remove
+            else if (f) ({ error } = await sb.from('pixie_friendships').delete().eq('id', f.id));
             if (error) return showToast('Friend action failed: ' + errText(error), 'error');
             await loadFriendships();
             showToast(act === 'add' ? 'Friend request sent.' : act === 'accept' ? 'You are now friends!' : 'Updated.', 'success');
@@ -993,7 +1031,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             const hidden = d.classList.contains('hidden');
             ['flex', 'fixed', 'inset-y-0', 'right-0', 'z-40', 'shadow-2xl'].forEach(c => d.classList.toggle(c, hidden));
             d.classList.toggle('hidden', !hidden);
-            $('mobile-sidebar-backdrop').classList.toggle('hidden', !hidden); // lets you close it (it used to cover its own toggle)
+            $('mobile-sidebar-backdrop').classList.toggle('hidden', !hidden);
         };
         window.closePanels = () => {
             toggleMobileSidebar(false);
@@ -1153,9 +1191,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
 
             const { data, error } = await sb.from('messages').select('*').eq('room_id', room.id)
                 .order('created_at', { ascending: false }).limit(200);
-            if (token !== roomLoadToken) return; // user switched rooms meanwhile
+            if (token !== roomLoadToken) return;
             if (error) showToast('Could not load messages: ' + errText(error), 'error');
-            // merge with any realtime messages that arrived while loading
             const fetched = (data || []).reverse();
             const ids = new Set(fetched.map(m => m.id));
             messages = fetched.concat(messages.filter(m => !ids.has(m.id)));
@@ -1227,7 +1264,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             if (forceBottom || nearBottom) container.scrollTop = container.scrollHeight;
         }
 
-        // Reactions via event delegation (no inline JS strings)
         $('messages-container').addEventListener('click', (e) => {
             const btn = e.target.closest('[data-react-msg]');
             if (btn) { const r = btn.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, btn.dataset.reactEmoji, 8); toggleReaction(btn.dataset.reactMsg, btn.dataset.reactEmoji); }
@@ -1393,7 +1429,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
                 renderVaultRows(); renderUsersLists();
                 showToast(`${p?.username || 'User'} has been ${ban ? 'BANNED' : 'UNBANNED'}.`, ban ? 'error' : 'success');
             } else if (btn.dataset.act === 'purge') {
-                if (purgeArm !== id) { // two-click confirm (confirm() is blocked in iframes)
+                if (purgeArm !== id) {
                     purgeArm = id; btn.textContent = 'Confirm?';
                     setTimeout(() => { if (purgeArm === id) { purgeArm = null; btn.textContent = 'Purge'; } }, 3000);
                     return;
@@ -1530,7 +1566,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             callStarting = true;
             try {
                 const stream = await acquireLocalMedia(mode);
-                if (activeCall) { // an incoming call was presented while the permission prompt was open
+                if (activeCall) {
                     stream.getTracks().forEach(t => t.stop());
                     return;
                 }
@@ -1582,12 +1618,11 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             if (!me || call.caller_id === me.id || activeCall) return;
             if (call.status !== 'ringing' || !isFresh(call)) return;
             if (me.presence === 'dnd') return;
-            if (call.callee_id && !canDirect(call.caller_id)) return; // direct calls from non-friends are ignored
+            if (call.callee_id && !canDirect(call.caller_id)) return;
             const forMe = call.callee_id === me.id || (!call.callee_id && call.room_type === 'channel' && call.room_id === activeRoom.id);
             if (forMe) presentIncomingCall(call);
         }
 
-        // A call may have started while the tab was asleep (phones pause the live connection): ring if one is still ringing
         async function checkPendingCalls() {
             if (!me || activeCall || me.presence === 'dnd') return;
             const since = new Date(Date.now() - 50000).toISOString();
@@ -1595,6 +1630,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             const c = (data || []).find(x => x.callee_id === me.id && canDirect(x.caller_id));
             if (c && !activeCall) presentIncomingCall(c);
         }
+
         function presentIncomingCall(call) {
             activeCall = call; isCaller = false; callAccepted = false; callRowReady = true;
             $('call-modal-title').textContent = `Incoming ${call.mode === 'video' ? 'Video' : 'Voice'} Call`;
@@ -1608,7 +1644,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             openCallModal();
             startRingtone(true);
             try { navigator.vibrate?.([300, 150, 300, 150, 300]); } catch (_) {}
-            notify(`Incoming ${call.mode === 'video' ? 'video' : 'voice'} call`, `${call.caller_name} is calling you`, { tag: 'call', urgent: true, roomId: call.room_id }).then(n => { callNotif = n; });
+            notify(`Incoming ${call.mode === 'video' ? 'video' : 'voice'} call`, `${call.caller_name} is calling you`, { tag: 'call', urgent: true, roomId: call.room_id, callId: call.id }).then(n => { callNotif = n; });
         }
 
         window.acceptIncomingCall = async () => {
@@ -1625,7 +1661,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
 
-                // Only succeeds if nobody else answered first (channel calls)
                 const { data, error } = await sb.from('calls')
                     .update({ status: 'connected', answer: { type: answer.type, sdp: answer.sdp } })
                     .eq('id', call.id).eq('status', 'ringing').select();
@@ -1658,7 +1693,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             if (!activeCall) return;
             const id = activeCall.id;
             const isDirect = !!activeCall.callee_id;
-            // For channel calls just dismiss locally; for direct calls tell the caller
             if (isDirect) await sb.from('calls').update({ status: 'declined' }).eq('id', id).eq('status', 'ringing');
             cleanupCallState();
             showToast('Call declined.', 'info');
@@ -1673,7 +1707,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
                 return cleanupCallState();
             }
             if (call.status === 'connected') {
-                if (!isCaller && !callAccepted) { // someone else picked up a channel call
+                if (!isCaller && !callAccepted) {
                     showToast('Call answered by someone else.', 'info');
                     return cleanupCallState();
                 }
@@ -1803,16 +1837,13 @@ const SUPABASE_ANON_KEY = 'sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH';
             populateEmojiGrid();
             if (!sb) { $('auth-config-banner').classList.remove('hidden'); return; }
 
-            // Session expiry / remote sign-out while the app is open
             sb.auth.onAuthStateChange((event) => {
                 if (event === 'SIGNED_OUT' && me) setTimeout(teardownSession, 0);
             });
 
-            // Restore a persisted session (stay logged in across refreshes)
             const { data } = await sb.auth.getSession();
             if (data?.session?.user) await enterApp(data.session.user);
         }
-        // Module scripts are deferred, so the DOM is already parsed here: run boot exactly once.
         boot();
     </script>
 </body>
