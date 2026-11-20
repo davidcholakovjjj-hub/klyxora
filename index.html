@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html lang="en" class="dark"><!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -370,6 +369,10 @@
                 <form id="message-form" class="flex items-center gap-2 bg-carbon-950/90 border border-pixie-700/40 focus-within:border-pixie-500 focus-within:shadow-[0_0_20px_-5px_rgba(147,51,234,0.5)] rounded-2xl px-3 py-2 transition">
                     <button type="button" onclick="toggleEmojiPopover()" title="Insert Emoji" class="p-2 rounded-xl text-slate-400 hover:text-pixie-300 hover:bg-pixie-900/40 transition shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </button>
+                    <input id="chat-image-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden" onchange="handleChatImageSelected(event)">
+                    <button type="button" onclick="triggerChatImagePicker()" title="Send Image" class="p-2 rounded-xl text-slate-400 hover:text-pixie-300 hover:bg-pixie-900/40 transition shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </button>
                     <textarea id="message-input" rows="1" enterkeyhint="send" maxlength="4000" placeholder="Message #general..." class="flex-1 bg-transparent text-sm sm:text-base text-white placeholder-slate-500 focus:outline-none min-w-0 resize-none max-h-28 py-1 leading-snug"></textarea>
                     <button type="submit" id="send-btn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-pixie-700 to-pixie-500 hover:from-pixie-600 hover:to-pixie-400 text-white font-semibold text-sm flex items-center gap-1.5 transition shrink-0 shadow-lg active:scale-95">
@@ -1040,17 +1043,18 @@
         function onMessageEvent(p) {
             if (p.eventType === 'INSERT') {
                 const m = p.new;
-                if (m.sender_id !== me.id && m.type === 'text' && (!String(m.room_id).startsWith('dm_') || canDirect(m.sender_id))) {
+                if (m.sender_id !== me.id && (m.type === 'text' || m.type === 'image') && (!String(m.room_id).startsWith('dm_') || canDirect(m.sender_id))) {
+                    const previewText = m.type === 'image' ? 'Sent an image' : String(m.text);
                     if (document.hidden || !document.hasFocus()) {
-                        notify(String(m.room_id).startsWith('dm_') ? m.sender_name : `${m.sender_name} in #${m.room_id}`, String(m.text).slice(0, 140), { tag: 'msg-' + m.room_id, roomId: m.room_id });
+                        notify(String(m.room_id).startsWith('dm_') ? m.sender_name : `${m.sender_name} in #${m.room_id}`, previewText.slice(0, 140), { tag: 'msg-' + m.room_id, roomId: m.room_id });
                         if (document.hidden) { unseenCount++; document.title = `(${unseenCount}) ${baseTitle}`; }
                     } else if (m.room_id !== activeRoom.id) {
-                        showToast(`${m.sender_name}: ${String(m.text).slice(0, 60)}`, 'info');
+                        showToast(`${m.sender_name}: ${previewText.slice(0, 60)}`, 'info');
                     }
                 }
                 if (m.room_id === activeRoom.id) {
                     if (!messages.find(x => x.id === m.id)) { messages.push(m); renderMessages(m.sender_id === me.id); }
-                } else if (m.sender_id !== me.id && m.type === 'text') {
+                } else if (m.sender_id !== me.id && (m.type === 'text' || m.type === 'image')) {
                     unread[m.room_id] = (unread[m.room_id] || 0) + 1;
                     renderChannelsList(); renderUsersLists();
                 }
@@ -1376,7 +1380,11 @@
                         </div>
                         <div class="relative px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words whitespace-pre-wrap shadow-md ${mine
                             ? 'bg-gradient-to-br from-pixie-700 to-pixie-800 text-white border border-pixie-500/40 rounded-tr-sm'
-                            : 'carbon-card text-slate-100 rounded-tl-sm'}">${escapeHtml(msg.text)}</div>
+                            : 'carbon-card text-slate-100 rounded-tl-sm'}">${
+                            msg.type === 'image' && /^https?:\/\//i.test(String(msg.text || ''))
+                                ? `<a href="${escapeHtml(msg.text)}" target="_blank" rel="noopener noreferrer" class="block"><img src="${escapeHtml(msg.text)}" alt="Image" class="max-h-72 max-w-full rounded-xl object-contain" loading="lazy"></a>`
+                                : escapeHtml(msg.text)
+                        }</div>
                         <div class="flex flex-wrap items-center gap-1.5 mt-1 px-1">
                             ${reactionsHtml}
                             <div class="react-bar opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition flex items-center bg-carbon-950/90 border border-pixie-800/50 rounded-full px-1 py-0.5">${quick}</div>
@@ -1947,6 +1955,40 @@
             } catch (_) {}
         });
 
+        window.triggerChatImagePicker = () => {
+            if (!me) return;
+            if (activeRoom.type === 'dm' && !canDirect(activeRoom.targetUid)) return showToast('Add them as a friend to message them.', 'info');
+            const inp = $('chat-image-input');
+            if (inp) { inp.value = ''; inp.click(); }
+        };
+
+        window.handleChatImageSelected = async (e) => {
+            const file = e?.target?.files?.[0];
+            if (!file || !me || !sb) return;
+            if (!file.type.startsWith('image/')) return showToast('Please select an image file.', 'error');
+            if (file.size > 5 * 1024 * 1024) return showToast('Image must be 5 MB or smaller.', 'error');
+
+            const roomId = activeRoom.id;
+            const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+            const filePath = `chat/${me.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+            const { error: upErr } = await sb.storage.from('avatars').upload(filePath, file, { upsert: false, contentType: file.type });
+            if (upErr) return showToast('Image upload failed: ' + errText(upErr), 'error');
+
+            const { data: pub } = sb.storage.from('avatars').getPublicUrl(filePath);
+            const imageUrl = pub?.publicUrl;
+            if (!imageUrl) return showToast('Could not get image URL.', 'error');
+
+            const { data, error } = await sb.from('messages')
+                .insert({ room_id: roomId, sender_name: me.username, text: imageUrl, type: 'image' }).select().single();
+            if (error) return showToast('Image message not sent: ' + errText(error), 'error');
+
+            if (roomId === activeRoom.id && !messages.find(m => m.id === data.id)) {
+                messages.push(data);
+                renderMessages(true);
+            }
+        };
+
         async function boot() {
             populateEmojiGrid();
             $('friend-search-input')?.addEventListener('input', renderUsersLists);
@@ -2257,3 +2299,4 @@
     </script>
 </body>
 </html>
+```[cite: 5]
