@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html lang="en" class="dark"><!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -11,6 +12,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
         tailwind.config = {
@@ -144,6 +147,12 @@
         @keyframes pixieBump{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-4px) scale(1.03)}70%{transform:translateY(1px) scale(.98)}}
         .bump-anim{animation:pixieBump .42s cubic-bezier(.2,1.4,.3,1)}
         .pixmap-canvas{image-rendering:pixelated;image-rendering:crisp-edges}
+        .amo-map-box{height:168px;width:100%;border-radius:12px;overflow:hidden;border:1px solid rgba(168,85,247,.35);background:#070709;z-index:1}
+        .amo-map-modal-box{height:62vh;min-height:320px;width:100%;border-radius:16px;overflow:hidden;border:1px solid rgba(168,85,247,.45);background:#070709}
+        .pixmap-marker-wrap{display:flex;flex-direction:column;align-items:center;pointer-events:auto;transform:translate(-50%,-50%)}
+        .pixmap-marker-img{width:28px;height:28px;image-rendering:pixelated;image-rendering:crisp-edges;filter:drop-shadow(0 0 6px rgba(192,132,252,.85))}
+        .pixmap-marker-tag{margin-top:2px;padding:1px 6px;border-radius:999px;background:rgba(7,7,9,.88);border:1px solid rgba(168,85,247,.5);color:#f3e8ff;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;white-space:nowrap}
+        .leaflet-container{background:#070709;font-family:'Inter',sans-serif}
         @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
     </style>
 </head>
@@ -243,30 +252,25 @@
                     </div>
                     <div id="channels-list" class="space-y-1"></div>
                 </div>
-                <div id="bump-amo-section" class="carbon-card rounded-2xl p-2.5 space-y-2.5 border border-pixie-500/30">
-                    <div class="flex items-center justify-between px-0.5">
+                <div id="bump-amo-section" class="carbon-card rounded-2xl p-2.5 space-y-2 border border-pixie-500/30">
+                    <div class="flex items-center justify-between gap-1.5">
                         <div class="flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-pixie-400"></span>
-                            <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-pixie-300">Bump by Amo</span>
+                            <canvas id="amo-pixmap-canvas" width="16" height="16" class="pixmap-canvas w-7 h-7 rounded-lg border border-pixie-500/40 bg-carbon-950 shrink-0"></canvas>
+                            <button type="button" onclick="cycleAmoPixmap()" title="Cycle Pixmap" class="px-2 py-1 rounded-lg bg-pixie-900/60 hover:bg-pixie-600 text-pixie-200 hover:text-white transition flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                <span id="amo-active-count" class="text-[10px] font-mono font-bold">0</span>
+                            </button>
                         </div>
-                        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-pixie-950/90 text-pixie-300 border border-pixie-600/30">PIXMAP</span>
-                    </div>
-
-                    <div class="flex items-center gap-2.5 bg-carbon-950/85 border border-pixie-800/40 rounded-xl p-2">
-                        <canvas id="amo-pixmap-canvas" width="16" height="16" class="pixmap-canvas w-10 h-10 rounded-lg border border-pixie-500/40 bg-carbon-950 shrink-0"></canvas>
-                        <div class="min-w-0 flex-1">
-                            <div class="text-xs font-semibold text-white truncate">Amo Pixmap Core</div>
-                            <div id="amo-pixmap-label" class="text-[10px] font-mono text-pixie-300/80 truncate">Sprite #1 • Purple Pulse</div>
+                        <div class="flex items-center gap-1">
+                            <button type="button" id="bump-amo-btn" onclick="triggerBumpByAmo()" title="Locate" class="p-1.5 rounded-lg bg-gradient-to-r from-pixie-700 to-pixie-500 hover:from-pixie-600 hover:to-pixie-400 text-white transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </button>
+                            <button type="button" onclick="openAmoMapModal()" title="Expand Map" class="p-1.5 rounded-lg bg-carbon-800 hover:bg-pixie-800/70 text-pixie-300 hover:text-white transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"/></svg>
+                            </button>
                         </div>
-                        <button type="button" onclick="cycleAmoPixmap()" title="Switch Pixmap" class="p-1.5 rounded-lg bg-pixie-900/60 hover:bg-pixie-600 text-pixie-200 hover:text-white transition shrink-0">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        </button>
                     </div>
-
-                    <button type="button" id="bump-amo-btn" onclick="triggerBumpByAmo()" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-pixie-700 via-pixie-600 to-pixie-500 hover:from-pixie-600 hover:to-pixie-400 text-white text-xs font-bold tracking-wide shadow-md purple-glow flex items-center justify-center gap-1.5 transition">
-                        <span>⚡</span>
-                        <span>Bump by Amo</span>
-                    </button>
+                    <div id="amo-free-map" class="amo-map-box"></div>
                 </div>
 
                 <div>
@@ -525,6 +529,25 @@
     </div>
 
     <div id="vault-overlay-mount"></div>
+
+    <div id="amo-map-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="carbon-surface w-full max-w-4xl rounded-3xl p-4 sm:p-5 border border-pixie-500/40 shadow-2xl space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                    <span id="amo-modal-count" class="text-xs font-mono font-bold text-pixie-200">0</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="cycleAmoPixmap()" class="px-3 py-1.5 rounded-xl bg-pixie-900/70 hover:bg-pixie-600 text-pixie-200 hover:text-white text-xs font-mono font-bold transition">Pixmap</button>
+                    <button type="button" onclick="triggerBumpByAmo()" class="px-3 py-1.5 rounded-xl bg-pixie-600 hover:bg-pixie-500 text-white text-xs font-mono font-bold transition">GPS</button>
+                    <button type="button" onclick="closeAmoMapModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="amo-free-map-modal" class="amo-map-modal-box"></div>
+        </div>
+    </div>
 
     <script type="module">
         import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -987,11 +1010,17 @@
             presenceChannel = sb.channel('pixie-presence', { config: { presence: { key: me.id } } });
             presenceChannel
                 .on('presence', { event: 'sync' }, () => {
-                    onlineIds = new Set(Object.keys(presenceChannel.presenceState()));
+                    const state = presenceChannel.presenceState();
+                    onlineIds = new Set(Object.keys(state));
+                    syncActiveUserLocationsFromPresence(state);
                     renderUsersLists();
+                    renderAllActivePixmapsOnMap();
                 })
                 .subscribe(async (status) => {
-                    if (status === 'SUBSCRIBED') await presenceChannel.track({ at: Date.now() });
+                    if (status === 'SUBSCRIBED') {
+                        await trackMyPresenceLocation();
+                        startGeolocationWatch();
+                    }
                 });
         }
 
@@ -1932,8 +1961,6 @@
         }
         const AMO_PIXMAPS = [
             {
-                name: 'Sprite #1 • Purple Pulse',
-                emoji: '💜',
                 grid: [
                     '....######......',
                     '...########.....',
@@ -1955,8 +1982,6 @@
                 palette: { '#': '#C084FC', '.': null }
             },
             {
-                name: 'Sprite #2 • Carbon Gem',
-                emoji: '⚡',
                 grid: [
                     '.......##.......',
                     '......####......',
@@ -1978,8 +2003,6 @@
                 palette: { '#': '#A855F7', '.': null }
             },
             {
-                name: 'Sprite #3 • Amo Bot',
-                emoji: '🤖',
                 grid: [
                     '.......##.......',
                     '.......##.......',
@@ -2002,10 +2025,36 @@
             }
         ];
         let amoPixmapIdx = 0;
+        let sidebarMap = null, modalMap = null;
+        let sidebarMarkers = [], modalMarkers = [];
+        let myCoords = { lat: 42.6977, lng: 23.3219 };
+        let geoWatchId = null;
+        const activeUserLocations = new Map();
+        const pixmapDataUrlCache = new Map();
+
+        function getPixmapDataUrl(idx) {
+            const safeIdx = ((idx % AMO_PIXMAPS.length) + AMO_PIXMAPS.length) % AMO_PIXMAPS.length;
+            if (pixmapDataUrlCache.has(safeIdx)) return pixmapDataUrlCache.get(safeIdx);
+            const sprite = AMO_PIXMAPS[safeIdx];
+            const c = document.createElement('canvas');
+            c.width = 16; c.height = 16;
+            const ctx = c.getContext('2d');
+            sprite.grid.forEach((row, y) => {
+                for (let x = 0; x < row.length; x++) {
+                    const color = sprite.palette[row[x]];
+                    if (color) {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x, y, 1, 1);
+                    }
+                }
+            });
+            const url = c.toDataURL();
+            pixmapDataUrlCache.set(safeIdx, url);
+            return url;
+        }
 
         function renderAmoPixmap() {
             const canvas = $('amo-pixmap-canvas');
-            const label = $('amo-pixmap-label');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
             const sprite = AMO_PIXMAPS[amoPixmapIdx % AMO_PIXMAPS.length];
@@ -2019,7 +2068,133 @@
                     }
                 }
             });
-            if (label) label.textContent = sprite.name;
+        }
+
+        function hashCoords(idStr, baseLat, baseLng) {
+            let h = 0;
+            const s = String(idStr || 'user');
+            for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i);
+            const dLat = (((Math.abs(h) % 100) / 100) - 0.5) * 0.04;
+            const dLng = (((Math.abs(h >> 7) % 100) / 100) - 0.5) * 0.05;
+            return { lat: baseLat + dLat, lng: baseLng + dLng };
+        }
+
+        function syncActiveUserLocationsFromPresence(state) {
+            if (!state) return;
+            const seen = new Set();
+            Object.entries(state).forEach(([uid, metas]) => {
+                seen.add(uid);
+                const latest = Array.isArray(metas) && metas.length ? metas[metas.length - 1] : {};
+                const fallback = hashCoords(uid, myCoords.lat, myCoords.lng);
+                const lat = typeof latest.lat === 'number' ? latest.lat : (activeUserLocations.get(uid)?.lat ?? fallback.lat);
+                const lng = typeof latest.lng === 'number' ? latest.lng : (activeUserLocations.get(uid)?.lng ?? fallback.lng);
+                const pixmapIdx = typeof latest.pixmapIdx === 'number' ? latest.pixmapIdx : (activeUserLocations.get(uid)?.pixmapIdx ?? (Math.abs(String(uid).charCodeAt(0) || 0) % AMO_PIXMAPS.length));
+                activeUserLocations.set(uid, { lat, lng, pixmapIdx });
+            });
+            for (const key of Array.from(activeUserLocations.keys())) {
+                if (!seen.has(key) && (!me || key !== me.id)) activeUserLocations.delete(key);
+            }
+        }
+
+        function getActiveUsersList() {
+            const ids = new Set(onlineIds);
+            if (me?.id) ids.add(me.id);
+            const list = [];
+            ids.forEach((uid) => {
+                const prof = profiles.get(uid) || (me && uid === me.id ? me : null);
+                if (prof?.banned) return;
+                const fallback = hashCoords(uid, myCoords.lat, myCoords.lng);
+                const loc = activeUserLocations.get(uid) || {
+                    lat: uid === me?.id ? myCoords.lat : fallback.lat,
+                    lng: uid === me?.id ? myCoords.lng : fallback.lng,
+                    pixmapIdx: uid === me?.id ? amoPixmapIdx : (Math.abs(String(uid).charCodeAt(0) || 0) % AMO_PIXMAPS.length)
+                };
+                list.push({
+                    id: uid,
+                    username: prof?.username || 'User',
+                    lat: loc.lat,
+                    lng: loc.lng,
+                    pixmapIdx: uid === me?.id ? amoPixmapIdx : loc.pixmapIdx
+                });
+            });
+            return list;
+        }
+
+        function initFreeLeafletMaps() {
+            if (typeof L === 'undefined') return;
+            const osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            const osmOpt = { maxZoom: 19, attribution: '&copy; OpenStreetMap' };
+
+            if (!sidebarMap && $('amo-free-map')) {
+                sidebarMap = L.map('amo-free-map', { zoomControl: false, attributionControl: false }).setView([myCoords.lat, myCoords.lng], 12);
+                L.tileLayer(osmUrl, osmOpt).addTo(sidebarMap);
+            }
+            if (!modalMap && $('amo-free-map-modal')) {
+                modalMap = L.map('amo-free-map-modal', { zoomControl: true }).setView([myCoords.lat, myCoords.lng], 13);
+                L.tileLayer(osmUrl, osmOpt).addTo(modalMap);
+            }
+            renderAllActivePixmapsOnMap();
+        }
+
+        function renderAllActivePixmapsOnMap() {
+            const users = getActiveUsersList();
+            if ($('amo-active-count')) $('amo-active-count').textContent = String(users.length);
+            if ($('amo-modal-count')) $('amo-modal-count').textContent = String(users.length);
+            if (typeof L === 'undefined') return;
+
+            const targets = [
+                { map: sidebarMap, markers: sidebarMarkers, setMarkers: (arr) => { sidebarMarkers = arr; } },
+                { map: modalMap, markers: modalMarkers, setMarkers: (arr) => { modalMarkers = arr; } }
+            ];
+
+            const boundsPts = [];
+            targets.forEach(({ map, markers, setMarkers }) => {
+                if (!map) return;
+                markers.forEach((m) => { try { map.removeLayer(m); } catch (_) {} });
+                const nextMarkers = [];
+                users.forEach((u) => {
+                    const imgUrl = getPixmapDataUrl(u.pixmapIdx);
+                    const icon = L.divIcon({
+                        className: '',
+                        iconSize: [0, 0],
+                        html: `<div class="pixmap-marker-wrap"><img class="pixmap-marker-img" src="${imgUrl}" alt="" /><span class="pixmap-marker-tag">${escapeHtml(u.username)}</span></div>`
+                    });
+                    const marker = L.marker([u.lat, u.lng], { icon }).addTo(map);
+                    nextMarkers.push(marker);
+                    boundsPts.push([u.lat, u.lng]);
+                });
+                setMarkers(nextMarkers);
+                map.invalidateSize();
+                if (users.length === 1) {
+                    map.setView([users[0].lat, users[0].lng], 13);
+                } else if (users.length > 1) {
+                    const groupPts = users.map((u) => [u.lat, u.lng]);
+                    map.fitBounds(groupPts, { padding: [24, 24], maxZoom: 14 });
+                }
+            });
+        }
+
+        async function trackMyPresenceLocation() {
+            if (!presenceChannel || !me) return;
+            activeUserLocations.set(me.id, { lat: myCoords.lat, lng: myCoords.lng, pixmapIdx: amoPixmapIdx });
+            try {
+                await presenceChannel.track({ at: Date.now(), lat: myCoords.lat, lng: myCoords.lng, pixmapIdx: amoPixmapIdx });
+            } catch (_) {}
+            renderAllActivePixmapsOnMap();
+        }
+
+        function startGeolocationWatch() {
+            if (!navigator.geolocation || geoWatchId !== null) return;
+            geoWatchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    myCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    trackMyPresenceLocation();
+                },
+                () => {
+                    trackMyPresenceLocation();
+                },
+                { enableHighAccuracy: true, maximumAge: 15000, timeout: 10000 }
+            );
         }
 
         window.cycleAmoPixmap = () => {
@@ -2031,35 +2206,53 @@
                 void c.offsetWidth;
                 c.classList.add('bump-anim');
             }
+            trackMyPresenceLocation();
         };
 
         window.triggerBumpByAmo = async () => {
-            const sprite = AMO_PIXMAPS[amoPixmapIdx % AMO_PIXMAPS.length];
             const section = $('bump-amo-section');
-            const btn = $('bump-amo-btn');
             if (section) {
                 section.classList.remove('bump-anim');
                 void section.offsetWidth;
                 section.classList.add('bump-anim');
             }
-            if (btn) {
-                const r = btn.getBoundingClientRect();
-                burst(r.left + r.width / 2, r.top, sprite.emoji, 10);
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        myCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        trackMyPresenceLocation();
+                    },
+                    () => trackMyPresenceLocation(),
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            } else {
+                trackMyPresenceLocation();
             }
-            showToast(`Bump by Amo sent (${sprite.name})!`, 'success');
-            if (sb && me && activeRoom?.id) {
-                const bumpText = `⚡ Bump by Amo [${sprite.name}]`;
-                const { data, error } = await sb.from('messages')
-                    .insert({ room_id: activeRoom.id, sender_name: me.username, text: bumpText, type: 'text' })
-                    .select().single();
-                if (!error && data && activeRoom.id === data.room_id && !messages.find(m => m.id === data.id)) {
-                    messages.push(data);
-                    renderMessages(true);
-                }
-            }
+            if (sidebarMap) sidebarMap.setView([myCoords.lat, myCoords.lng], 14);
+            if (modalMap) modalMap.setView([myCoords.lat, myCoords.lng], 14);
+        };
+
+        window.openAmoMapModal = () => {
+            const m = $('amo-map-modal');
+            if (!m) return;
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            initFreeLeafletMaps();
+            setTimeout(() => {
+                if (modalMap) modalMap.invalidateSize();
+                renderAllActivePixmapsOnMap();
+            }, 60);
+        };
+
+        window.closeAmoMapModal = () => {
+            const m = $('amo-map-modal');
+            if (!m) return;
+            m.classList.add('hidden');
+            m.classList.remove('flex');
         };
 
         renderAmoPixmap();
+        initFreeLeafletMaps();
         boot();
     </script>
 </body>
