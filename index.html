@@ -490,7 +490,9 @@
                     </button>
                 </div>
             </div>
-        </aside><!-- MAIN CHAT AREA -->
+        </aside>
+
+        <!-- MAIN CHAT AREA -->
         <main class="flex-1 flex flex-col min-w-0 bg-carbon-950/55 relative">
             <div id="active-call-banner" onclick="openCallModal()" class="hidden cursor-pointer bg-gradient-to-r from-pixie-800 via-pixie-600 to-pixie-800 px-4 py-2 flex items-center justify-between text-xs font-semibold text-white shadow-lg z-20">
                 <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span><span id="banner-call-text">Live Call In Progress</span><span id="banner-call-timer" class="font-mono bg-black/30 px-2 py-0.5 rounded-md">00:00</span></div>
@@ -641,6 +643,7 @@
             <div id="right-members-list" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
         </aside>
     </div>
+
     <!-- REAL-TIME CALL STUDIO MODAL -->
     <div id="call-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4">
         <div class="carbon-surface modal-card-anim w-full max-w-5xl rounded-3xl border border-pixie-500/40 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
@@ -818,7 +821,9 @@
     <div id="whiteboard-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div class="carbon-surface modal-card-anim w-full max-w-3xl rounded-3xl p-5 border border-pixie-500/40 shadow-2xl space-y-3"><div class="flex flex-wrap items-center justify-between gap-2"><h3 class="text-base font-bold text-white">Draw Together (Live Neon Canvas)</h3><div class="flex items-center gap-2"><input id="wb-color" type="color" value="#C084FC" class="w-7 h-7 rounded cursor-pointer"><input id="wb-size" type="range" min="2" max="18" value="4" class="w-20 accent-purple-500"><button type="button" onclick="clearWhiteboard(true)" class="px-3 py-1.5 rounded-xl bg-carbon-800 text-xs text-slate-200">Clear</button><button type="button" onclick="exportWhiteboardToChat()" class="px-3 py-1.5 rounded-xl bg-pixie-600 text-xs font-bold text-white">Send to Chat</button><button type="button" onclick="closeWhiteboardModal()" class="p-1.5 text-slate-400 hover:text-white">✕</button></div></div><canvas id="wb-canvas" width="900" height="480" class="w-full h-72 sm:h-96 rounded-2xl bg-[#070709] border border-pixie-500/30 cursor-crosshair touch-none"></canvas></div></div>
     <div id="saved-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div class="carbon-surface modal-card-anim w-full max-w-lg rounded-3xl p-5 border border-pixie-500/40 shadow-2xl space-y-3 max-h-[85vh] flex flex-col"><div class="flex items-center justify-between"><h3 class="text-base font-bold text-white">Saved Messages</h3><button type="button" onclick="closeSavedModal()" class="p-1.5 text-slate-400 hover:text-white">✕</button></div><div id="saved-bookmarks-list" class="flex-1 overflow-y-auto space-y-2"></div></div></div>
     <div id="qr-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4"><div class="carbon-surface modal-card-anim w-full max-w-sm rounded-3xl p-6 border border-pixie-500/40 shadow-2xl text-center space-y-4"><div class="flex items-center justify-between"><h3 class="text-base font-bold text-white">Friend QR &amp; Invite</h3><button type="button" onclick="closeQrModal()" class="p-1.5 text-slate-400 hover:text-white">✕</button></div><div id="qr-code-box" class="bg-white p-3 rounded-2xl inline-flex mx-auto"></div><p id="qr-invite-url" class="text-[11px] font-mono text-pixie-300 break-all"></p><button type="button" onclick="copyInviteLink()" class="w-full py-2.5 rounded-xl bg-pixie-600 text-white text-xs font-bold">Copy Friend Invite Link</button></div></div>
-  <script type="module">
+    <div id="cmd-palette-modal" class="fixed inset-0 z-[80] hidden items-start justify-center bg-black/75 backdrop-blur-sm pt-20 p-4"><div class="carbon-surface modal-card-anim w-full max-w-lg rounded-2xl border border-pixie-500/40 shadow-2xl overflow-hidden"><input id="cmd-palette-input" type="text" placeholder="Type a command, channel, theme, Whiteboard, Zen Mode..." class="w-full bg-carbon-950 px-4 py-3 text-sm text-white border-b border-white/10 focus:outline-none"><div id="cmd-palette-list" class="max-h-72 overflow-y-auto p-2 space-y-1"></div></div></div>
+
+    <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
 const SUPABASE_URL = 'https://qknbgyexxnglvyyotwhz.supabase.co';
@@ -884,6 +889,19 @@ let simInterval = null, simAudioCtx = null, ringSynth = null, ringtoneLoop = nul
 let audioMixer = null, voiceFxMode = 'normal', crispMicOn = false, monitorSelfOn = false, eqRaf = null;
 let screenTrack = null, camFxMode = 'normal', camFxTimer = null, rawCamStream = null;
 let callMiniGameOpen = false, callGameState = { type: 'ttt', board: Array(9).fill(''), turn: 'X' }, currentYtId = '';
+
+window._callTtt = (i) => {
+    if (callGameState.board[i]) return;
+    callGameState.board[i] = callGameState.turn;
+    callGameState.turn = callGameState.turn === 'X' ? 'O' : 'X';
+    renderCallMiniGame();
+    if (activeCall) broadcastRoomEvent('call_game', { callId: activeCall.id, state: callGameState });
+};
+window._callTttReset = () => {
+    callGameState = { type: 'ttt', board: Array(9).fill(''), turn: 'X' };
+    renderCallMiniGame();
+    if (activeCall) broadcastRoomEvent('call_game', { callId: activeCall.id, state: callGameState });
+};
 
 // --- BESPOKE 16-THEME ANIMATED WALLPAPER ENGINE ---
 let wpRaf = null, wpTheme = null, wpParticles = [], wpMatrixCols = [];
@@ -1041,7 +1059,7 @@ function isInQuietHours() {
     return s <= e ? (cur >= s && cur <= e) : (cur >= s || cur <= e);
 }
 async function subscribePush() {
-    if (!me || !('PushManager' in window) || !notifOn()) return;
+    if (!sb || !me || !('PushManager' in window) || !notifOn()) return;
     try {
         const reg = await navigator.serviceWorker.ready;
         let sub = await reg.pushManager.getSubscription();
@@ -1050,7 +1068,7 @@ async function subscribePush() {
         await sb.from('pixie_push_subs').upsert({ user_id: me.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: 'endpoint' });
     } catch (_) {}
 }
-async function unsubscribePush() { try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) await sb.from('pixie_push_subs').delete().eq('endpoint', sub.endpoint); } catch (_) {} }
+async function unsubscribePush() { if (!sb) return; try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) await sb.from('pixie_push_subs').delete().eq('endpoint', sub.endpoint); } catch (_) {} }
 const notifOn = () => 'Notification' in window && Notification.permission === 'granted' && lsGet('px_notif') !== 'off';
 function updateBell() { $('notif-dot')?.classList.toggle('hidden', !notifOn()); }
 window.toggleNotifications = async () => {
@@ -1061,7 +1079,7 @@ window.toggleNotifications = async () => {
     if (wasOn) unsubscribePush(); else subscribePush(); showToast(wasOn ? 'Notifications muted.' : 'Notifications on.', 'info');
 };
 async function openIncomingCallById(callId) {
-    if (!callId || !me || activeCall) return;
+    if (!sb || !callId || !me || activeCall) return;
     const { data: call } = await sb.from('calls').select('*').eq('id', callId).eq('status', 'ringing').maybeSingle();
     if (call && call.caller_id !== me.id && isFresh(call)) presentIncomingCall(call);
 }
@@ -1088,8 +1106,8 @@ function openRoomById(roomId) {
     const u = Array.from(profiles.values()).find(x => me && x.id !== me.id && getDmRoomId(me.id, x.id) === roomId);
     if (u) switchRoom({ id: roomId, name: u.username, type: 'dm', desc: u.status || 'Direct conversation', targetUid: u.id });
 }
-    <div id="cmd-palette-modal" class="fixed inset-0 z-[80] hidden items-start justify-center bg-black/75 backdrop-blur-sm pt-20 p-4"><div class="carbon-surface modal-card-anim w-full max-w-lg rounded-2xl border border-pixie-500/40 shadow-2xl overflow-hidden"><input id="cmd-palette-input" type="text" placeholder="Type a command, channel, theme, Whiteboard, Zen Mode..." class="w-full bg-carbon-950 px-4 py-3 text-sm text-white border-b border-white/10 focus:outline-none"><div id="cmd-palette-list" class="max-h-72 overflow-y-auto p-2 space-y-1"></div></div></div>
-    document.addEventListener('pointerdown', (e) => {
+
+document.addEventListener('pointerdown', (e) => {
     const b = e.target.closest('button');
     if (!b || b.disabled || getComputedStyle(b).position !== 'static') return;
     b.classList.add('ripple-host');
@@ -1239,6 +1257,7 @@ function showBanScreen(reason) {
     $('auth-ban-banner').classList.remove('hidden'); $('auth-ban-reason-text').textContent = reason || 'Account suspended by administrator.';
 }
 async function enterApp(user) {
+    if (!sb) return;
     let profile = null;
     for (let i = 0; i < 4 && !profile; i++) {
         const { data } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
@@ -1269,20 +1288,21 @@ async function enterApp(user) {
 }
 function teardownSession() {
     if (activeCall) cleanupCallState(); stopAmbienceNodes();
-    if (dbChannel) { sb.removeChannel(dbChannel); dbChannel = null; }
-    if (presenceChannel) { sb.removeChannel(presenceChannel); presenceChannel = null; }
+    if (sb && dbChannel) { sb.removeChannel(dbChannel); dbChannel = null; }
+    if (sb && presenceChannel) { sb.removeChannel(presenceChannel); presenceChannel = null; }
     me = null; messages = []; unread = {}; onlineIds = new Set(); profiles.clear(); channels = []; friendships = new Map();
     activeRoom = { id: 'general', name: 'general', type: 'channel', desc: 'Main lobby for all Klyxora members', targetUid: null };
     $('vault-overlay-mount').innerHTML = ''; $('app-shell').classList.add('hidden'); $('auth-gateway').classList.remove('hidden'); $('auth-password').value = '';
 }
-function triggerBanKickout(reason) { sb.auth.signOut().finally(() => {}); teardownSession(); showBanScreen(reason); showToast('Access revoked: account banned.', 'error'); }
-window.logoutAccount = async () => { if (activeCall) await endCurrentCall(true); await sb.auth.signOut(); teardownSession(); showToast('Signed out of KLYXORA.', 'info'); };
+function triggerBanKickout(reason) { sb?.auth.signOut().finally(() => {}); teardownSession(); showBanScreen(reason); showToast('Access revoked: account banned.', 'error'); }
+window.logoutAccount = async () => { if (activeCall) await endCurrentCall(true); await sb?.auth.signOut(); teardownSession(); showToast('Signed out of KLYXORA.', 'info'); };
 
-async function loadChannels() { const { data, error } = await sb.from('channels').select('*').order('created_at'); if (!error) { channels = data || []; renderChannelsList(); } }
-async function loadProfiles() { const { data, error } = await sb.from('profiles').select('*'); if (!error) { (data || []).forEach(p => profiles.set(p.id, p)); if (me && profiles.has(me.id)) me = profiles.get(me.id); renderUsersLists(); } }
+async function loadChannels() { if (!sb) return; const { data, error } = await sb.from('channels').select('*').order('created_at'); if (!error) { channels = data || []; renderChannelsList(); } }
+async function loadProfiles() { if (!sb) return; const { data, error } = await sb.from('profiles').select('*'); if (!error) { (data || []).forEach(p => profiles.set(p.id, p)); if (me && profiles.has(me.id)) me = profiles.get(me.id); renderUsersLists(); } }
 const friendState = (uid) => { const f = friendships.get(uid); return !f ? 'none' : f.status === 'accepted' ? 'friend' : f.incoming ? 'received' : 'sent'; };
 const canDirect = (uid) => !friendsEnabled || friendState(uid) === 'friend';
 async function loadFriendships() {
+    if (!sb || !me) return;
     const { data, error } = await sb.from('pixie_friendships').select('*');
     if (error) { friendsEnabled = false; return renderUsersLists(); }
     friendsEnabled = true; friendships = new Map();
@@ -1290,6 +1310,7 @@ async function loadFriendships() {
     renderUsersLists();
 }
 window.friendAction = async (uid, act) => {
+    if (!sb || !me) return;
     const f = friendships.get(uid); let error;
     if (act === 'add') ({ error } = await sb.from('pixie_friendships').insert({ addressee: uid }));
     else if (act === 'accept' && f) ({ error } = await sb.from('pixie_friendships').update({ status: 'accepted' }).eq('id', f.id));
@@ -1300,6 +1321,7 @@ window.friendAction = async (uid, act) => {
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-fa]'); if (b) friendAction(b.dataset.uid, b.dataset.fa); });
 
 function subscribeRealtime() {
+    if (!sb) return;
     if (dbChannel) sb.removeChannel(dbChannel);
     dbChannel = sb.channel('pixie-db')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, onMessageEvent)
@@ -1314,6 +1336,7 @@ function subscribeRealtime() {
 function broadcastRoomEvent(event, payload) { try { presenceChannel?.send({ type: 'broadcast', event, payload }); } catch (_) {} }
 
 function joinPresence() {
+    if (!sb || !me) return;
     if (presenceChannel) sb.removeChannel(presenceChannel);
     presenceChannel = sb.channel('pixie-presence', { config: { presence: { key: me.id } } });
     presenceChannel
@@ -1354,6 +1377,7 @@ function onProfileEvent(p) {
     renderUsersLists(); if (me?.role === 'admin' && $('stealth-vault-modal')) renderVaultRows();
 }
 function onMessageEvent(p) {
+    if (!me) return;
     if (p.eventType === 'INSERT') {
         const m = p.new, wm = String(m.text || '').match(/^\[\[whisper:([^|\]]+)\|([^\]]*)\]\]\n?/);
         const visible = !wm || m.sender_id === me.id || wm[1] === me.id;
@@ -1370,6 +1394,7 @@ function onMessageEvent(p) {
 }
 
 function updateMyProfileUI() {
+    if (!me) return;
     $('my-display-name').textContent = me.username || 'KlyxoraUser'; $('my-custom-status').textContent = me.status || 'Online & Ready';
     const dot = $('my-status-dot'); if (dot) dot.className = `absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-carbon-950 ${me.presence === 'dnd' ? 'bg-rose-500' : me.presence === 'away' ? 'bg-amber-400' : 'bg-emerald-400'}`;
     const av = $('my-avatar'); if (av) { av.innerHTML = renderAvatarHtml(me); if (dot) av.appendChild(dot); }
@@ -1379,7 +1404,7 @@ window.setActivityMood = (v) => { myMood = v; lsSet('px_mood', v); updateMyProfi
 window.setStatusExpiry = (hrs) => { const h = Number(hrs); lsSet('px_status_exp', h ? String(Date.now() + h * 3600000) : ''); };
 async function checkStatusExpiry() {
     const exp = Number(lsGet('px_status_exp') || 0);
-    if (exp && Date.now() > exp && me) { lsSet('px_status_exp', ''); const { data } = await sb.from('profiles').update({ status: 'Online & Ready' }).eq('id', me.id).select().single(); if (data) { me = data; profiles.set(me.id, me); updateMyProfileUI(); } }
+    if (exp && Date.now() > exp && me && sb) { lsSet('px_status_exp', ''); const { data } = await sb.from('profiles').update({ status: 'Online & Ready' }).eq('id', me.id).select().single(); if (data) { me = data; profiles.set(me.id, me); updateMyProfileUI(); } }
 }
 window.toggleProfanityFilter = (on) => { lsSet('px_profanity_filter', on ? 'on' : 'off'); renderMessages(false); };
 window.saveCustomBlockedWords = (v) => { lsSet('px_custom_blocked', v); renderMessages(false); };
@@ -1390,6 +1415,7 @@ function syncPrivacyBlurState() { document.body.classList.toggle('privacy-blurre
 window.addEventListener('blur', syncPrivacyBlurState); window.addEventListener('focus', syncPrivacyBlurState);
 
 window.openProfileModal = () => {
+    if (!me) return;
     $('input-username').value = me.username || ''; $('input-status').value = me.status || ''; $('input-presence').value = me.presence || 'online';
     if ($('input-mood')) $('input-mood').value = myMood;
     if ($('pref-bubble')) $('pref-bubble').value = lsGet('px_bubble') || 'rounded';
@@ -1415,6 +1441,7 @@ window.openProfileModal = () => {
 window.closeProfileModal = () => { $('profile-modal').classList.add('hidden'); $('profile-modal').classList.remove('flex'); };
 $('profile-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!sb || !me) return;
     const username = $('input-username').value.trim(), status = $('input-status').value.trim() || 'Online & Ready', presence = $('input-presence').value, file = $('input-avatar-file')?.files?.[0];
     if (username.length < 3) return showToast('Username must be at least 3 characters.', 'error');
     let avatar_url = me.avatar_url || null;
@@ -1435,6 +1462,7 @@ window.openCreateChannelModal = () => { $('input-channel-name').value = ''; $('i
 window.closeCreateChannelModal = () => { $('channel-modal').classList.add('hidden'); $('channel-modal').classList.remove('flex'); };
 $('create-channel-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!sb || !me) return;
     const name = $('input-channel-name').value.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '-').replace(/^-+|-+$/g, '');
     const desc = $('input-channel-desc').value.trim() || 'Custom Klyxora channel';
     if (name.length < 2) return showToast('Channel name must be at least 2 characters.', 'error');
@@ -1449,7 +1477,8 @@ window.toggleMembersDrawer = () => { const d = $('right-members-drawer'), h = d.
 window.closePanels = () => { toggleMobileSidebar(false); if ($('right-members-drawer').classList.contains('fixed')) toggleMembersDrawer(); };
 function populateEmojiGrid() { const g = $('emoji-grid'); g.innerHTML = ''; QUICK_EMOJIS.forEach(em => { const b = document.createElement('button'); b.type = 'button'; b.textContent = em; b.className = 'p-1.5 rounded-xl hover:bg-pixie-800/60'; b.onclick = () => { $('message-input').value += em; $('message-input').focus(); toggleEmojiPopover(false); }; g.appendChild(b); }); }
 window.toggleEmojiPopover = (force) => { const p = $('emoji-popover'); if (typeof force === 'boolean') p.classList.toggle('hidden', !force); else p.classList.toggle('hidden'); };
-    function renderChannelsList() {
+
+function renderChannelsList() {
     const c = $('channels-list'); if (!c) return; c.innerHTML = '';
     channels.forEach(ch => {
         const active = activeRoom.type === 'channel' && activeRoom.id === ch.id, n = unread[ch.id] || 0;
@@ -1574,6 +1603,7 @@ function renderInteractiveCard(msg, cardSpec) {
     return `<div class="p-2.5 rounded-2xl carbon-card text-xs font-mono text-pixie-200">${blurEscapedPreview(state.text || '')}</div>`;
 }
 window.handleCardAction = (msgId, kind, val) => {
+    if (!me) return;
     const m = messages.find(x => x.id === msgId); if (!m) return;
     const cm = String(m.text || '').match(/\[\[card:(?:ttt|rps|poll|roll|flip|8ball)\|([\s\S]+?)\]\]/);
     if (!cm) return;
@@ -1586,6 +1616,7 @@ window.handleCardAction = (msgId, kind, val) => {
 };
 
 async function switchRoom(room) {
+    if (!sb || !me) return;
     activeRoom = room; unread[room.id] = 0; typingUsers.clear(); renderTypingIndicator();
     $('active-room-title').textContent = room.name; $('active-room-desc').textContent = room.desc;
     $('active-room-icon').textContent = room.type === 'channel' ? '#' : '@';
@@ -1674,11 +1705,12 @@ function renderMessages(forceBottom) {
     });
     if (forceBottom || nearBottom) container.scrollTop = container.scrollHeight;
 }
-    window.replyToMsg = (id) => { const m = messages.find(x => x.id === id); if (!m) return; const s = String(m.text || '').replace(/^\[\[(?:reply|whisper):[^\]]+\]\]\n?/, '').slice(0, 60); replyTarget = { id: m.id, sender: m.sender_name, snippet: s }; $('reply-banner-label').textContent = `Replying to ${m.sender_name}:`; $('reply-banner-snippet').textContent = s; $('reply-banner').classList.remove('hidden'); $('message-input').focus(); };
+
+window.replyToMsg = (id) => { const m = messages.find(x => x.id === id); if (!m) return; const s = String(m.text || '').replace(/^\[\[(?:reply|whisper):[^\]]+\]\]\n?/, '').slice(0, 60); replyTarget = { id: m.id, sender: m.sender_name, snippet: s }; $('reply-banner-label').textContent = `Replying to ${m.sender_name}:`; $('reply-banner-snippet').textContent = s; $('reply-banner').classList.remove('hidden'); $('message-input').focus(); };
 window.cancelReply = () => { replyTarget = null; $('reply-banner').classList.add('hidden'); };
 window.toggleWhisperTarget = (uid, name) => { if (!uid) { whisperTarget = null; $('whisper-banner').classList.add('hidden'); return; } whisperTarget = { uid, name }; $('whisper-banner-text').textContent = `Whispering privately to ${name}`; $('whisper-banner').classList.remove('hidden'); $('message-input').focus(); };
-window.startEditMsg = (id) => { const m = messages.find(x => x.id === id); if (!m || m.sender_id !== me.id) return; editingMsgId = id; $('message-input').value = String(m.text || '').replace(/^\[\[(?:reply|whisper):[^\]]+\]\]\n?/, '').replace(/\[\[edited\]\]$/, ''); $('send-btn-label').textContent = 'Save'; $('message-input').focus(); };
-window.deleteOwnMsg = async (id) => { const { error } = await sb.from('messages').delete().eq('id', id).eq('sender_id', me.id); if (error) return showToast(errText(error), 'error'); messages = messages.filter(x => x.id !== id); renderMessages(false); };
+window.startEditMsg = (id) => { if (!me) return; const m = messages.find(x => x.id === id); if (!m || m.sender_id !== me.id) return; editingMsgId = id; $('message-input').value = String(m.text || '').replace(/^\[\[(?:reply|whisper):[^\]]+\]\]\n?/, '').replace(/\[\[edited\]\]$/, ''); $('send-btn-label').textContent = 'Save'; $('message-input').focus(); };
+window.deleteOwnMsg = async (id) => { if (!sb || !me) return; const { error } = await sb.from('messages').delete().eq('id', id).eq('sender_id', me.id); if (error) return showToast(errText(error), 'error'); messages = messages.filter(x => x.id !== id); renderMessages(false); };
 window.togglePinBanner = (id) => { const m = messages.find(x => x.id === id); if (!m) return; const pin = { id: m.id, text: `${m.sender_name}: ${String(m.text || '').replace(/^\[\[(?:reply|whisper):[^\]]+\]\]\n?/, '').slice(0, 120)}` }; pinnedByRoom[activeRoom.id] = pin; lsSet('px_pins', JSON.stringify(pinnedByRoom)); broadcastRoomEvent('pin_msg', { roomId: activeRoom.id, pin }); renderPinBanner(); showToast('Pinned message!', 'success'); };
 window.toggleBookmark = (id) => { const m = messages.find(x => x.id === id); if (!m) return; if (!bookmarksList.find(b => b.id === m.id)) { bookmarksList.unshift({ id: m.id, room: activeRoom.name, sender: m.sender_name, text: String(m.text || '').slice(0, 300), at: m.created_at }); lsSet('px_bookmarks', JSON.stringify(bookmarksList.slice(0, 100))); showToast('Saved to Bookmarks', 'success'); } };
 window.openSavedModal = () => { const l = $('saved-bookmarks-list'); l.innerHTML = bookmarksList.length ? '' : '<p class="text-xs text-slate-400 text-center py-6">No saved messages yet.</p>'; bookmarksList.forEach(b => { const d = document.createElement('div'); d.className = 'carbon-card rounded-2xl p-3 text-xs space-y-1'; d.innerHTML = `<div class="flex justify-between text-pixie-300 font-mono"><span>${escapeHtml(b.sender)} (#${escapeHtml(b.room)})</span><button type="button" onclick="removeBookmark('${escapeHtml(b.id)}')" class="text-rose-400">✕</button></div><div>${blurEscapedPreview(b.text)}</div>`; l.appendChild(d); }); $('saved-modal').classList.remove('hidden'); $('saved-modal').classList.add('flex'); };
@@ -1686,7 +1718,7 @@ window.closeSavedModal = () => { $('saved-modal').classList.add('hidden'); $('sa
 window.removeBookmark = (id) => { bookmarksList = bookmarksList.filter(b => b.id !== id); lsSet('px_bookmarks', JSON.stringify(bookmarksList)); openSavedModal(); };
 
 $('messages-container').addEventListener('click', (e) => { const btn = e.target.closest('[data-react-msg]'); if (btn) { const r = btn.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, btn.dataset.reactEmoji, 8); toggleReaction(btn.dataset.reactMsg, btn.dataset.reactEmoji); } });
-async function toggleReaction(msgId, emoji) { const { data, error } = await sb.rpc('toggle_reaction', { p_message: msgId, p_emoji: emoji }); if (error) return showToast(errText(error), 'error'); const i = messages.findIndex(m => m.id === msgId); if (i >= 0) { messages[i] = { ...messages[i], reactions: data }; renderMessages(false); } }
+async function toggleReaction(msgId, emoji) { if (!sb) return; const { data, error } = await sb.rpc('toggle_reaction', { p_message: msgId, p_emoji: emoji }); if (error) return showToast(errText(error), 'error'); const i = messages.findIndex(m => m.id === msgId); if (i >= 0) { messages[i] = { ...messages[i], reactions: data }; renderMessages(false); } }
 
 function buildSlashPayload(raw) {
     const t = raw.trim();
@@ -1704,7 +1736,7 @@ function startSendCooldown() {
     tick(); sendCooldownTimer = setInterval(tick, 120);
 }
 async function sendTextMessage(rawText, roomId = activeRoom.id, targetUid = activeRoom.targetUid, roomType = activeRoom.type) {
-    if (!me || !rawText.trim()) return false;
+    if (!sb || !me || !rawText.trim()) return false;
     if (roomType === 'dm' && !canDirect(targetUid)) { showToast('Add them as a friend to message them.', 'info'); return false; }
     let final = buildSlashPayload(rawText) || rawText.trim();
     if (replyTarget && !editingMsgId) final = `[[reply:${replyTarget.id}|${replyTarget.sender}|${replyTarget.snippet}]]\n` + final;
@@ -1736,7 +1768,7 @@ $('message-form').addEventListener('submit', async (e) => {
 });
 
 window.toggleVoiceRecording = async () => {
-    if (!me) return; const btn = $('voice-rec-btn');
+    if (!sb || !me) return; const btn = $('voice-rec-btn');
     if (isRecordingVoice && mediaRecorder) { mediaRecorder.stop(); isRecordingVoice = false; btn.classList.remove('bg-rose-600', 'text-white'); return; }
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); recChunks = []; mediaRecorder = new MediaRecorder(stream);
@@ -1786,8 +1818,8 @@ setInterval(async () => {
 window.openWatchModal = () => { $('watch-modal').classList.remove('hidden'); $('watch-modal').classList.add('flex'); };
 window.closeWatchModal = () => { $('watch-modal').classList.add('hidden'); $('watch-modal').classList.remove('flex'); };
 function mountYtIframe(vid, auto = 0) { currentYtId = vid; $('watch-yt-player').innerHTML = `<iframe id="yt-embed-frame" class="w-full h-full" src="https://www.youtube-nocookie.com/embed/${escapeHtml(vid)}?enablejsapi=1&autoplay=${auto}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`; }
-window.loadAndSyncYoutube = () => { const m = $('watch-yt-url').value.trim().match(/(?:v=|youtu\.be\/|^)([A-Za-z0-9_-]{11})/); if (!m) return showToast('Invalid YouTube URL/ID.', 'error'); mountYtIframe(m[1], 1); broadcastRoomEvent('watch_sync', { roomId: activeRoom.id, uid: me.id, action: 'load', vid: m[1] }); };
-window.sendWatchSync = (action) => { if (!currentYtId) return; const f = $('yt-embed-frame')?.contentWindow; const map = { play: 'playVideo', pause: 'pauseVideo', seek0: 'seekTo' }; f?.postMessage(JSON.stringify({ event: 'command', func: map[action], args: action === 'seek0' ? [0, true] : '' }), '*'); broadcastRoomEvent('watch_sync', { roomId: activeRoom.id, uid: me.id, action, vid: currentYtId }); };
+window.loadAndSyncYoutube = () => { if (!me) return; const m = $('watch-yt-url').value.trim().match(/(?:v=|youtu\.be\/|^)([A-Za-z0-9_-]{11})/); if (!m) return showToast('Invalid YouTube URL/ID.', 'error'); mountYtIframe(m[1], 1); broadcastRoomEvent('watch_sync', { roomId: activeRoom.id, uid: me.id, action: 'load', vid: m[1] }); };
+window.sendWatchSync = (action) => { if (!currentYtId || !me) return; const f = $('yt-embed-frame')?.contentWindow; const map = { play: 'playVideo', pause: 'pauseVideo', seek0: 'seekTo' }; f?.postMessage(JSON.stringify({ event: 'command', func: map[action], args: action === 'seek0' ? [0, true] : '' }), '*'); broadcastRoomEvent('watch_sync', { roomId: activeRoom.id, uid: me.id, action, vid: currentYtId }); };
 function handleIncomingWatchSync(p) {
     if (!$('watch-modal').classList.contains('flex')) openWatchModal();
     if (p.action === 'load' && p.vid) return mountYtIframe(p.vid, 1);
@@ -1802,547 +1834,587 @@ window.closeWhiteboardModal = () => { $('whiteboard-modal').classList.add('hidde
 function drawWbSegment(x0, y0, x1, y1, color, size) { const c = $('wb-canvas'); if (!c) return; const ctx = c.getContext('2d'); ctx.strokeStyle = color; ctx.lineWidth = size; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
 window.clearWhiteboard = (b = true) => { const c = $('wb-canvas'); if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height); if (b) broadcastRoomEvent('wb_clear', { roomId: activeRoom.id, uid: me?.id }); };
 window.exportWhiteboardToChat = () => {
-    const c = $('wb-canvas'); if (!c || !me) return;
+    const c = $('wb-canvas'); if (!c || !sb || !me) return;
     c.toBlob(async (blob) => {
         if (!blob) return; const fp = `chat/${me.id}/wb_${Date.now()}.png`, { error: ue } = await sb.storage.from('avatars').upload(fp, blob, { upsert: false, contentType: 'image/png' });
         if (ue) return showToast(errText(ue), 'error');
         const url = sb.storage.from('avatars').getPublicUrl(fp).data.publicUrl;
-        const { data } = await sb.from('messages').insert({ room_id: activeRoom.id, sender_name: me.username, text: url, type: 'image' }).select().single();
-        if (data && !messages.find(m => m.id === data.id)) { messages.push(data); renderMessages(true); }
-        closeWhiteboardModal(); showToast('Whiteboard sent!', 'success');
-    }, 'image/png');
+        const { data, error } = await sb.from('messages').insert({ room_id: activeRoom.id, sender_name: me.username, text: url, type: 'image' }).select().single();
+        if (!error && !messages.find(m => m.id === data.id)) { messages.push(data); renderMessages(true); }
+        closeWhiteboardModal(); showToast('Whiteboard sent to chat!', 'success');
+    });
 };
-{
-    const c = $('wb-canvas'), pt = (ev) => { const r = c.getBoundingClientRect(); return { x: (ev.clientX - r.left) * (c.width / r.width), y: (ev.clientY - r.top) * (c.height / r.height) }; };
-    c?.addEventListener('pointerdown', (e) => { wbDrawing = true; wbPrev = pt(e); });
-    c?.addEventListener('pointermove', (e) => { if (!wbDrawing || !wbPrev) return; const cur = pt(e), col = $('wb-color').value, sz = Number($('wb-size').value); drawWbSegment(wbPrev.x, wbPrev.y, cur.x, cur.y, col, sz); broadcastRoomEvent('wb_draw', { roomId: activeRoom.id, uid: me?.id, x0: wbPrev.x, y0: wbPrev.y, x1: cur.x, y1: cur.y, color: col, size: sz }); wbPrev = cur; });
+(() => {
+    const c = $('wb-canvas'); if (!c) return;
+    const pt = (e) => { const r = c.getBoundingClientRect(); return { x: ((e.clientX - r.left) / r.width) * c.width, y: ((e.clientY - r.top) / r.height) * c.height }; };
+    c.addEventListener('pointerdown', (e) => { wbDrawing = true; wbPrev = pt(e); });
+    c.addEventListener('pointermove', (e) => { if (!wbDrawing || !wbPrev) return; const p = pt(e), col = $('wb-color')?.value || '#C084FC', sz = Number($('wb-size')?.value || 4); drawWbSegment(wbPrev.x, wbPrev.y, p.x, p.y, col, sz); broadcastRoomEvent('wb_draw', { roomId: activeRoom.id, uid: me?.id, x0: wbPrev.x, y0: wbPrev.y, x1: p.x, y1: p.y, color: col, size: sz }); wbPrev = p; });
     window.addEventListener('pointerup', () => { wbDrawing = false; wbPrev = null; });
-}
+})();
 
-window.openQrModal = () => { if (!me) return; const url = `${location.origin}${location.pathname}?add=${encodeURIComponent(me.username)}`; $('qr-invite-url').textContent = url; const box = $('qr-code-box'); box.innerHTML = ''; if (typeof qrcode !== 'undefined') { const q = qrcode(0, 'M'); q.addData(url); q.make(); box.innerHTML = q.createSvgTag(4, 2); } $('qr-modal').classList.remove('hidden'); $('qr-modal').classList.add('flex'); };
+window.exportChatTxt = () => { const lines = messages.map(m => `[${formatTime(m.created_at)}] ${m.sender_name}: ${String(m.text || '').replace(/^\[\[(?:reply|whisper):[^\]]+\]\]\n?/, '')}`); const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `klyxora-${activeRoom.name}-${Date.now()}.txt`; a.click(); URL.revokeObjectURL(a.href); };
+window.toggleZenMode = () => { document.body.classList.toggle('zen-mode'); showToast(document.body.classList.contains('zen-mode') ? 'Zen Mode on (Ctrl+\\ to exit)' : 'Zen Mode off', 'info'); };
+window.openQrModal = () => {
+    if (!me) return; const u = `${window.location.origin}${window.location.pathname}?add=${encodeURIComponent(me.username)}`;
+    $('qr-invite-url').textContent = u; const qr = qrcode(0, 'M'); qr.addData(u); qr.make();
+    $('qr-code-box').innerHTML = qr.createSvgTag(4, 2); $('qr-modal').classList.remove('hidden'); $('qr-modal').classList.add('flex');
+};
 window.closeQrModal = () => { $('qr-modal').classList.add('hidden'); $('qr-modal').classList.remove('flex'); };
-window.copyInviteLink = () => { navigator.clipboard?.writeText($('qr-invite-url').textContent); showToast('Invite link copied!', 'success'); };
-window.exportChatTxt = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([messages.map(m => `[${new Date(m.created_at).toLocaleString()}] ${m.sender_name}: ${m.text}`).join('\n')], { type: 'text/plain' })); a.download = `klyxora-${activeRoom.name}.txt`; a.click(); };
-window.toggleZenMode = () => { document.body.classList.toggle('zen-mode'); showToast(document.body.classList.contains('zen-mode') ? 'Zen Mode ON' : 'Zen Mode OFF', 'info'); };
-window.openCommandPalette = () => { $('cmd-palette-modal').classList.remove('hidden'); $('cmd-palette-modal').classList.add('flex'); $('cmd-palette-input').value = ''; renderCmdPalette(''); setTimeout(() => $('cmd-palette-input').focus(), 40); };
-window.closeCommandPalette = () => { $('cmd-palette-modal').classList.add('hidden'); $('cmd-palette-modal').classList.remove('flex'); };
-function renderCmdPalette(q) {
-    const items = [...channels.map(c => ({ label: `Channel #${c.name}`, act: () => switchRoom({ id: c.id, name: c.name, type: 'channel', desc: c.description || '', targetUid: null }) })), ...THEMES.map(t => ({ label: `Theme: ${t.name}`, act: () => setTheme(t.id) })), { label: 'Toggle Zen Mode', act: () => toggleZenMode() }, { label: 'Open Whiteboard', act: () => openWhiteboardModal() }, { label: 'Open Watch Together', act: () => openWatchModal() }, { label: 'Open Saved Bookmarks', act: () => openSavedModal() }, { label: 'Open Profile & Studio', act: () => openProfileModal() }, { label: 'Open Friend Radar', act: () => openAmoMapModal() }].filter(x => x.label.toLowerCase().includes(q.toLowerCase()));
-    const l = $('cmd-palette-list'); l.innerHTML = ''; items.slice(0, 14).forEach(it => { const b = document.createElement('button'); b.type = 'button'; b.className = 'w-full text-left px-3 py-2 rounded-xl hover:bg-pixie-800/50 text-xs text-white'; b.textContent = it.label; b.onclick = () => { closeCommandPalette(); it.act(); }; l.appendChild(b); });
-}
-$('cmd-palette-input')?.addEventListener('input', (e) => renderCmdPalette(e.target.value));
-$('cmd-palette-modal')?.addEventListener('click', (e) => { if (e.target.id === 'cmd-palette-modal') closeCommandPalette(); });
+window.copyInviteLink = () => { navigator.clipboard?.writeText($('qr-invite-url').textContent || ''); showToast('Invite link copied!', 'success'); };
+window.copyUserId = () => { if (!me) return; navigator.clipboard?.writeText(me.id); showToast('User ID copied!', 'success'); };
 
-window.copyUserId = () => { navigator.clipboard?.writeText(me?.id || ''); showToast('Copied User ID', 'success'); };
-window.mountAndOpenVault = async () => {
-    if (!me || me.role !== 'admin') return;
-    if (!$('stealth-vault-modal')) {
-        $('vault-overlay-mount').innerHTML = `<div id="stealth-vault-modal" class="fixed inset-0 z-[75] flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6"><div class="carbon-surface modal-card-anim w-full max-w-5xl rounded-3xl border border-pixie-500/50 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"><div class="px-6 py-4 bg-carbon-900 border-b border-pixie-600/40 flex flex-wrap items-center justify-between gap-3"><div><h3 class="font-extrabold text-white text-base">MODERATION CONSOLE</h3><p class="text-xs font-mono text-pixie-300">Live registry &amp; real-time ban enforcement</p></div><div class="flex items-center gap-2"><span id="vault-stats-pill" class="text-xs font-mono bg-black/50 px-3 py-1 rounded-xl text-pixie-200">0 Accounts</span><button onclick="closeStealthVault()" class="p-2 rounded-xl bg-white/5 hover:bg-rose-600 text-slate-300">✕</button></div></div><div class="p-4 bg-carbon-900/90 border-b border-pixie-800/40 flex flex-col sm:flex-row gap-3"><input id="vault-search-input" type="text" placeholder="Search usernames..." class="flex-1 bg-carbon-950 border border-pixie-700/50 rounded-xl px-4 py-2 text-sm text-white"><select id="vault-filter-select" class="bg-carbon-950 border border-pixie-700/50 rounded-xl px-3.5 py-2 text-sm text-white"><option value="all">All</option><option value="active">Active</option><option value="banned">Banned</option></select></div><div class="flex-1 overflow-auto p-4"><table class="w-full text-left border-collapse"><thead><tr class="border-b border-pixie-800/50 text-[11px] font-mono uppercase text-pixie-300"><th class="py-3 px-3">User</th><th class="py-3 px-3">Presence</th><th class="py-3 px-3 hidden md:table-cell">Joined</th><th class="py-3 px-3 hidden sm:table-cell">Msgs</th><th class="py-3 px-3">Status</th><th class="py-3 px-3 text-right">Actions</th></tr></thead><tbody id="vault-users-tbody" class="divide-y divide-pixie-900/40 text-sm"></tbody></table></div></div></div>`;
-        $('vault-search-input').addEventListener('input', renderVaultRows); $('vault-filter-select').addEventListener('change', renderVaultRows); $('vault-users-tbody').addEventListener('click', onVaultClick);
-    }
-    $('stealth-vault-modal').classList.remove('hidden'); $('stealth-vault-modal').classList.add('flex'); await loadProfiles(); await loadAdminCounts();
-};
-window.closeStealthVault = () => { const m = $('stealth-vault-modal'); if (m) { m.classList.add('hidden'); m.classList.remove('flex'); } };
-async function loadAdminCounts() { const { data } = await sb.rpc('admin_message_counts'); adminCounts = new Map((data || []).map(r => [r.sender_id, Number(r.n)])); renderVaultRows(); }
-function renderVaultRows() {
-    if (me?.role !== 'admin') return; const tbody = $('vault-users-tbody'); if (!tbody) return;
-    const q = ($('vault-search-input')?.value || '').toLowerCase(), mode = $('vault-filter-select')?.value || 'all', all = Array.from(profiles.values()).filter(p => p.id !== me.id);
-    const list = all.filter(p => ((p.username || '').toLowerCase().includes(q) || (p.status || '').toLowerCase().includes(q)) && (mode === 'all' || (mode === 'active' && !p.banned) || (mode === 'banned' && p.banned)));
-    $('vault-stats-pill').textContent = `${all.length} Registered • ${all.filter(p => p.banned).length} Banned`; tbody.innerHTML = '';
-    list.forEach(p => {
-        const online = !p.banned && onlineIds.has(p.id), tr = document.createElement('tr');
-        tr.innerHTML = `<td class="py-3 px-3"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-xl bg-pixie-900 flex items-center justify-center text-xs font-bold text-white shrink-0 overflow-hidden">${renderAvatarHtml(p)}</div><div class="min-w-0"><div class="font-semibold text-white truncate">${escapeHtml(p.username)}</div><div class="text-[11px] text-slate-400 truncate">${escapeHtml(p.status || '')}</div></div></div></td><td class="py-3 px-3 text-xs font-mono ${online ? 'text-emerald-400' : 'text-slate-500'}">${online ? 'Online' : 'Offline'}</td><td class="py-3 px-3 hidden md:table-cell text-xs font-mono text-slate-400">${p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</td><td class="py-3 px-3 hidden sm:table-cell text-xs font-mono text-pixie-300">${adminCounts.get(p.id) || 0}</td><td class="py-3 px-3">${p.banned ? '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-950 text-rose-300">BANNED</span>' : '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-300">ACTIVE</span>'}</td><td class="py-3 px-3 text-right"><button type="button" data-act="ban" data-id="${escapeHtml(p.id)}" data-ban="${p.banned ? '0' : '1'}" class="px-3 py-1 rounded-xl text-xs font-bold text-white ${p.banned ? 'bg-emerald-600' : 'bg-rose-600'}">${p.banned ? 'Unban' : 'Ban'}</button> <button type="button" data-act="purge" data-id="${escapeHtml(p.id)}" class="px-2.5 py-1 rounded-xl bg-carbon-800 text-slate-300 text-xs font-mono">Purge</button></td>`;
-        tbody.appendChild(tr);
-    });
-}
-let purgeArm = null;
-async function onVaultClick(e) {
-    const btn = e.target.closest('button[data-act]'); if (!btn || me?.role !== 'admin') return; const id = btn.dataset.id;
-    if (btn.dataset.act === 'ban') {
-        const ban = btn.dataset.ban === '1', { error } = await sb.from('profiles').update({ banned: ban, ban_reason: ban ? 'Suspended by KLYXORA network moderation.' : '' }).eq('id', id);
-        if (error) return showToast(errText(error), 'error'); const p = profiles.get(id); if (p) profiles.set(id, { ...p, banned: ban }); renderVaultRows(); renderUsersLists();
-    } else if (btn.dataset.act === 'purge') {
-        if (purgeArm !== id) { purgeArm = id; btn.textContent = 'Confirm?'; setTimeout(() => { if (purgeArm === id) { purgeArm = null; btn.textContent = 'Purge'; } }, 3000); return; }
-        purgeArm = null; await sb.rpc('admin_purge_messages', { target: id }); await loadAdminCounts();
-    }
-}
-window.addEventListener('keydown', (e) => {
-    if (me?.role === 'admin' && e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'm') { e.preventDefault(); const m = $('stealth-vault-modal'); if (m && !m.classList.contains('hidden')) closeStealthVault(); else mountAndOpenVault(); }
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openCommandPalette(); }
-    if ((e.ctrlKey || e.metaKey) && e.key === '\\') { e.preventDefault(); toggleZenMode(); }
-});
-    // --- REAL-TIME CALL STUDIO: WEB AUDIO MIXER, VOICE FX, SOUNDBOARD, CAM FX, CC & WEBRTC ---
-function teardownAudioMixer() {
-    cancelAnimationFrame(eqRaf); eqRaf = null;
-    if (audioMixer) {
-        audioMixer.fxNodes.forEach(n => { try { n.dispose?.(); n.disconnect?.(); } catch (_) {} });
-        try { audioMixer.src?.disconnect(); } catch (_) {}
-        audioMixer = null;
-    }
-}
-function buildAudioMixer(rawStream) {
-    teardownAudioMixer();
-    const rawTrack = rawStream.getAudioTracks()[0];
-    if (!rawTrack || typeof Tone === 'undefined') return rawTrack || null;
-    try {
-        const rawCtx = Tone.getContext().rawContext, src = rawCtx.createMediaStreamSource(new MediaStream([rawTrack]));
-        const crispHp = rawCtx.createBiquadFilter(); crispHp.type = 'highpass'; crispHp.frequency.value = 85;
-        const crispComp = rawCtx.createDynamicsCompressor(), fxIn = rawCtx.createGain(), fxOut = rawCtx.createGain(), dest = rawCtx.createMediaStreamDestination(), mon = rawCtx.createGain();
-        mon.gain.value = monitorSelfOn ? 0.85 : 0;
-        const analyser = rawCtx.createAnalyser(); analyser.fftSize = 64;
-        const sbGain = rawCtx.createGain(); sbGain.gain.value = 0.8;
-        fxOut.connect(analyser); fxOut.connect(dest); fxOut.connect(mon); mon.connect(rawCtx.destination);
-        sbGain.connect(dest); sbGain.connect(rawCtx.destination);
-        audioMixer = { rawCtx, src, crispHp, crispComp, fxIn, fxOut, dest, mon, analyser, sbGain, fxNodes: [], outTrack: dest.stream.getAudioTracks()[0] };
-        rewireAudioMixer();
-        const dataArr = new Uint8Array(analyser.frequencyBinCount);
-        const eqLoop = () => {
-            if (!audioMixer) return;
-            analyser.getByteFrequencyData(dataArr);
-            const avg = dataArr.reduce((a, b) => a + b, 0) / (dataArr.length || 1);
-            document.querySelectorAll('#call-eq-bars .eq-bar').forEach((bar, i) => { bar.style.height = `${Math.min(100, Math.max(18, (dataArr[i * 2] || avg) / 2.2))}%`; });
-            const av = $('call-pulse-avatar'); if (av) av.style.boxShadow = avg > 18 ? `0 0 ${Math.min(45, avg / 2)}px var(--accent-secondary)` : '';
-            eqRaf = requestAnimationFrame(eqLoop);
-        };
-        eqLoop();
-        return audioMixer.outTrack;
-    } catch (_) { return rawTrack; }
-}
-function rewireAudioMixer() {
-    if (!audioMixer) return;
-    const { src, crispHp, crispComp, fxIn, fxOut, fxNodes } = audioMixer;
-    try { src.disconnect(); crispHp.disconnect(); crispComp.disconnect(); fxIn.disconnect(); } catch (_) {}
-    fxNodes.forEach(n => { try { n.dispose?.(); n.disconnect?.(); } catch (_) {} });
-    audioMixer.fxNodes = [];
-    if (crispMicOn) { src.connect(crispHp); crispHp.connect(crispComp); crispComp.connect(fxIn); } else src.connect(fxIn);
-    const mode = voiceFxMode, mk = (n) => { audioMixer.fxNodes.push(n); return n; };
-    try {
-        if (mode === 'normal') return fxIn.connect(fxOut);
-        let pitch = 0, echo = 0, grit = 0, bp = false;
-        if (mode === 'hacker') pitch = -4; else if (mode === 'helium') pitch = 7; else if (mode === 'demon') { pitch = -7; grit = 0.45; echo = 0.2; }
-        else if (mode === 'radio') { bp = true; grit = 0.25; } else if (mode === '8bit') grit = 0.85; else if (mode === 'stadium') echo = 0.55; else if (mode === 'alien') { pitch = 3; echo = 0.35; }
-        else if (mode === 'custom') { pitch = Number($('vfx-pitch')?.value || 0); echo = Number($('vfx-echo')?.value || 0); grit = Number($('vfx-grit')?.value || 0); }
-        let tail = fxIn;
-        if (bp) { const f = mk(new Tone.Filter(1400, 'bandpass')); Tone.connect(tail, f); tail = f; }
-        if (pitch !== 0) { const ps = mk(new Tone.PitchShift(pitch)); Tone.connect(tail, ps); tail = ps; }
-        if (grit > 0) { const d = mk(new Tone.Distortion(grit * 0.8)); Tone.connect(tail, d); tail = d; }
-        if (echo > 0) { const dl = mk(new Tone.FeedbackDelay(0.18, echo * 0.65)); Tone.connect(tail, dl); tail = dl; }
-        Tone.connect(tail, fxOut);
-        const s = pc?.getSenders().find(x => x.track?.kind === 'audio');
-        if (s && audioMixer.outTrack) s.replaceTrack(audioMixer.outTrack);
-    } catch (_) { fxIn.connect(fxOut); }
-}
-window.setVoiceFx = (mode) => { voiceFxMode = mode; $('custom-voice-sliders')?.classList.toggle('hidden', mode !== 'custom'); if (mode === 'radio') playSoundboardPad('squelch'); rewireAudioMixer(); };
-window.toggleCrispMic = () => { crispMicOn = !crispMicOn; $('btn-crisp-mic')?.classList.toggle('bg-pixie-600', crispMicOn); rewireAudioMixer(); };
-window.toggleMonitorSelf = () => { monitorSelfOn = !monitorSelfOn; $('btn-monitor-self')?.classList.toggle('bg-pixie-600', monitorSelfOn); if (audioMixer) audioMixer.mon.gain.value = monitorSelfOn ? 0.85 : 0; };
-window.playSoundboardPad = (pad) => {
-    if (typeof Tone === 'undefined') return;
-    unlockAudioContext(); const target = audioMixer?.sbGain || Tone.getDestination();
-    const mk = (o) => { const s = new Tone.Synth(o); Tone.connect(s, target); setTimeout(() => { try { s.dispose(); } catch (_) {} }, 1200); return s; };
-    if (pad === 'airhorn') { const s = mk({ oscillator: { type: 'sawtooth' } }); s.triggerAttackRelease('F4', '8n'); setTimeout(() => s.triggerAttackRelease('F4', '4n'), 130); }
-    else if (pad === 'boom') mk({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.2 } }).triggerAttackRelease('C2', '2n');
-    else if (pad === 'bruh') { const s = mk({ oscillator: { type: 'triangle' } }); s.triggerAttackRelease('G2', '8n'); setTimeout(() => s.triggerAttackRelease('D2', '4n'), 120); }
-    else if (pad === 'trombone') { const s = mk({ oscillator: { type: 'sawtooth' } }); ['D4', 'C#4', 'C4', 'B3'].forEach((n, i) => setTimeout(() => s.triggerAttackRelease(n, '8n'), i * 220)); }
-    else if (pad === 'rimshot' || pad === 'squelch') { const n = new Tone.NoiseSynth({ envelope: { attack: 0.005, decay: pad === 'squelch' ? 0.05 : 0.09, sustain: 0 } }); Tone.connect(n, target); n.triggerAttackRelease('16n'); setTimeout(() => { try { n.dispose(); } catch (_) {} }, 400); }
-    else if (pad === 'laser') { const s = mk({ oscillator: { type: 'square' } }); s.triggerAttack('C6'); s.frequency.rampTo('C3', 0.22); s.triggerRelease('+0.24'); }
-};
-
-window.setCamFx = (mode) => {
-    camFxMode = mode; clearInterval(camFxTimer); camFxTimer = null;
-    const rawVidTrack = rawCamStream?.getVideoTracks()[0], sender = pc?.getSenders().find(s => s.track?.kind === 'video');
-    if (mode === 'normal' || !rawVidTrack) { if (rawVidTrack && sender) sender.replaceTrack(rawVidTrack); if (rawCamStream) $('local-video').srcObject = rawCamStream; return; }
-    const srcVid = document.createElement('video'); srcVid.srcObject = new MediaStream([rawVidTrack]); srcVid.muted = true; srcVid.play().catch(() => {});
-    const c = document.createElement('canvas'); c.width = 480; c.height = 270; const ctx = c.getContext('2d');
-    camFxTimer = setInterval(() => {
-        if (srcVid.readyState < 2) return;
-        ctx.filter = mode === 'noir' ? 'grayscale(1) contrast(1.4)' : mode === 'cyber' ? 'hue-rotate(190deg) saturate(1.8) contrast(1.2)' : mode === 'vhs' ? 'sepia(0.35) contrast(1.25)' : 'none';
-        if (mode === 'pixel') { ctx.imageSmoothingEnabled = false; ctx.drawImage(srcVid, 0, 0, 48, 27); ctx.drawImage(c, 0, 0, 48, 27, 0, 0, 480, 270); }
-        else ctx.drawImage(srcVid, 0, 0, 480, 270);
-        if (mode === 'vhs') { ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fillRect(0, (Date.now() / 8) % 270, 480, 3); }
-    }, 33);
-    const fxTrack = c.captureStream(30).getVideoTracks()[0]; if (sender) sender.replaceTrack(fxTrack); $('local-video').srcObject = new MediaStream([fxTrack]);
-};
-window.toggleScreenShare = async () => {
-    const btn = $('btn-screen-share'), sender = pc?.getSenders().find(s => s.track?.kind === 'video');
-    if (screenTrack) { screenTrack.stop(); screenTrack = null; btn.classList.remove('bg-pixie-600', 'text-white'); const camT = rawCamStream?.getVideoTracks()[0]; if (camT && sender) sender.replaceTrack(camT); if (rawCamStream) $('local-video').srcObject = rawCamStream; return; }
-    try {
-        const ds = await navigator.mediaDevices.getDisplayMedia({ video: true }); screenTrack = ds.getVideoTracks()[0]; btn.classList.add('bg-pixie-600', 'text-white');
-        if (sender) await sender.replaceTrack(screenTrack); $('local-video').srcObject = ds; $('local-video-wrapper').classList.remove('hidden');
-        screenTrack.onended = () => { if (screenTrack) toggleScreenShare(); };
-    } catch (_) { showToast('Screen share cancelled.', 'info'); }
-};
-function showCallCaption(text) { const bar = $('call-captions-bar'); if (!bar) return; bar.innerHTML = blurEscapedPreview(text); bar.classList.remove('hidden'); clearTimeout(bar._t); bar._t = setTimeout(() => bar.classList.add('hidden'), 4500); }
-window.toggleLiveCaptions = () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition, btn = $('btn-cc-toggle'); if (!SR) return showToast('Live Captions unsupported.', 'error');
-    if (isCaptionsOn && callCaptionsRec) { callCaptionsRec.stop(); isCaptionsOn = false; btn.classList.remove('bg-pixie-600', 'text-white'); return; }
-    callCaptionsRec = new SR(); callCaptionsRec.continuous = true;
-    callCaptionsRec.onresult = (ev) => { const txt = Array.from(ev.results).slice(-1)[0]?.[0]?.transcript?.trim(); if (txt && activeCall) { showCallCaption(`${me.username}: ${txt}`); broadcastRoomEvent('call_caption', { callId: activeCall.id, uid: me.id, username: me.username, text: txt }); } };
-    callCaptionsRec.onend = () => { if (isCaptionsOn) try { callCaptionsRec.start(); } catch (_) {} };
-    callCaptionsRec.start(); isCaptionsOn = true; btn.classList.add('bg-pixie-600', 'text-white');
-};
-function spawnCallFloatEmoji(emoji) { const st = $('call-stage-area'); if (!st) return; const el = document.createElement('span'); el.className = 'call-float-emoji'; el.textContent = emoji; el.style.left = `${20 + Math.random() * 60}%`; st.appendChild(el); setTimeout(() => el.remove(), 1900); }
-window.sendCallReaction = (emoji) => { spawnCallFloatEmoji(emoji); if (activeCall) broadcastRoomEvent('call_react', { callId: activeCall.id, emoji }); };
-function renderCallMiniGame() {
-    const body = $('call-minigame-body'); if (!body) return;
-    body.innerHTML = `<div class="text-[11px] font-mono text-pixie-300">Turn: ${callGameState.turn}</div><div class="grid grid-cols-3 gap-1">${callGameState.board.map((v, i) => `<button type="button" onclick="window._callTtt(${i})" class="h-12 rounded-lg bg-carbon-950 border border-pixie-500/40 font-mono font-bold text-white">${escapeHtml(v || '·')}</button>`).join('')}</div><button type="button" onclick="window._callTttReset()" class="w-full py-1 rounded-lg bg-white/10 text-[10px] text-white">Reset</button>`;
-}
-window._callTtt = (i) => { if (callGameState.board[i]) return; callGameState.board[i] = callGameState.turn; callGameState.turn = callGameState.turn === 'X' ? 'O' : 'X'; renderCallMiniGame(); if (activeCall) broadcastRoomEvent('call_game', { callId: activeCall.id, state: callGameState }); };
-window._callTttReset = () => { callGameState = { type: 'ttt', board: Array(9).fill(''), turn: 'X' }; renderCallMiniGame(); if (activeCall) broadcastRoomEvent('call_game', { callId: activeCall.id, state: callGameState }); };
-window.toggleCallMiniGame = (force) => { callMiniGameOpen = typeof force === 'boolean' ? force : !callMiniGameOpen; $('call-minigame-overlay').classList.toggle('hidden', !callMiniGameOpen); if (callMiniGameOpen) renderCallMiniGame(); };
-
-function createSimulatedMediaStream(wantVideo) {
-    const tracks = [];
-    try {
-        const c = document.createElement('canvas'); c.width = 640; c.height = 360; const ctx = c.getContext('2d'); let hue = 275;
-        const draw = () => { hue = (hue + 0.6) % 360; const g = ctx.createLinearGradient(0, 0, 640, 360); g.addColorStop(0, '#160326'); g.addColorStop(1, `hsl(${hue},65%,24%)`); ctx.fillStyle = g; ctx.fillRect(0, 0, 640, 360); ctx.fillStyle = '#E9D5FF'; ctx.font = 'bold 24px Inter'; ctx.textAlign = 'center'; ctx.fillText(`${me?.username || 'KLYXORA'} // VIRTUAL STREAM`, 320, 180); };
-        draw(); if (wantVideo && c.captureStream) { simInterval = setInterval(draw, 100); c.captureStream(15).getVideoTracks().forEach(t => tracks.push(t)); }
-    } catch (_) {}
-    try { const AC = window.AudioContext || window.webkitAudioContext; if (AC) { simAudioCtx = new AC(); simAudioCtx.createMediaStreamDestination().stream.getAudioTracks().forEach(t => tracks.push(t)); } } catch (_) {}
-    return new MediaStream(tracks);
-}
-async function acquireLocalMedia(mode) {
-    const wantVideo = mode === 'video';
-    if (navigator.mediaDevices?.getUserMedia) {
-        try { const s = await navigator.mediaDevices.getUserMedia({ audio: true, video: wantVideo }); $('call-media-note').textContent = 'Encrypted peer-to-peer media stream active.'; return s; }
-        catch (_) { if (wantVideo) try { const a = await navigator.mediaDevices.getUserMedia({ audio: true, video: false }); $('call-media-note').textContent = 'Camera unavailable — audio connected.'; return a; } catch (_) {} }
-    }
-    $('call-media-note').textContent = 'Virtual stream active.'; return createSimulatedMediaStream(wantVideo);
-}
-function attachLocalStreamToUI(stream, mode) {
-    rawCamStream = stream; const mixedAudio = buildAudioMixer(stream);
-    localStream = new MediaStream([...(mixedAudio ? [mixedAudio] : stream.getAudioTracks()), ...stream.getVideoTracks()]);
-    isMicMuted = false; isCamOff = mode !== 'video';
-    const hasVideo = stream.getVideoTracks().length > 0;
-    if (hasVideo && mode === 'video') { $('local-video').srcObject = stream; $('local-video-wrapper').classList.remove('hidden'); }
-    else { $('local-video').srcObject = null; $('local-video-wrapper').classList.add('hidden'); }
-    $('icon-mic-on').classList.remove('hidden'); $('icon-mic-off').classList.add('hidden');
-    $('icon-cam-on').classList.toggle('hidden', !hasVideo); $('icon-cam-off').classList.toggle('hidden', hasVideo);
-}
-async function sendCandidate(callId, cand) { await sb.from('call_candidates').insert({ call_id: callId, candidate: cand }); }
-function setupPeerConnection(callId) {
-    if (pc) try { pc.close(); } catch (_) {}
-    pendingIce = []; remoteDescSet = false; seenCand = new Set(); pc = new RTCPeerConnection(RTC_CONFIG);
-    localStream?.getTracks().forEach(t => pc.addTrack(t, localStream));
-    pc.ontrack = (ev) => {
-        const stream = ev.streams?.[0] || new MediaStream([ev.track]);
-        $('remote-audio').srcObject = stream; $('remote-audio').play?.().catch(() => { showToast('Tap anywhere to enable call audio.', 'info'); document.addEventListener('pointerdown', () => $('remote-audio').play?.().catch(() => {}), { once: true }); });
-        if (stream.getVideoTracks().length > 0) { $('remote-video').srcObject = stream; $('remote-video').classList.remove('hidden'); $('call-avatar-stage').classList.add('hidden'); }
-    };
-    pc.onicecandidate = (ev) => { if (!ev.candidate) return; const c = ev.candidate.toJSON(); if (callRowReady) sendCandidate(callId, c); else candQueue.push(c); };
-    pc.onconnectionstatechange = () => { if (pc?.connectionState === 'failed') showToast('Connection failed (TURN may be required).', 'error'); };
-}
-async function addRemoteCandidate(c) { if (pc && remoteDescSet) try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (_) {} else pendingIce.push(c); }
-async function flushPendingIce() { while (pc && remoteDescSet && pendingIce.length) try { await pc.addIceCandidate(new RTCIceCandidate(pendingIce.shift())); } catch (_) {} }
-
-window.initiateCall = async (mode = 'video') => {
-    if (!me || callStarting) return;
-    if (activeRoom.type === 'dm' && !canDirect(activeRoom.targetUid)) return showToast('Add them as a friend to call.', 'info');
-    if (activeCall) return openCallModal();
-    unlockAudioContext(); callStarting = true;
-    try {
-        const stream = await acquireLocalMedia(mode); if (activeCall) { stream.getTracks().forEach(t => t.stop()); return; }
-        attachLocalStreamToUI(stream, mode);
-        const callId = crypto.randomUUID(); isCaller = true; callAccepted = true; callRowReady = false; candQueue = [];
-        activeCall = { id: callId, room_id: activeRoom.id, status: 'ringing', caller_id: me.id };
-        setupPeerConnection(callId); const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
-        const tp = activeRoom.targetUid ? profiles.get(activeRoom.targetUid) : null;
-        $('call-modal-title').textContent = `KLYXORA // ${mode === 'video' ? 'Video' : 'Voice'} Call`;
-        $('call-modal-subtitle').textContent = `Calling ${activeRoom.type === 'channel' ? '#' : '@'}${activeRoom.name}...`;
-        $('call-peer-name').textContent = `${activeRoom.type === 'channel' ? '#' : ''}${activeRoom.name}`;
-        $('call-pulse-avatar').innerHTML = renderAvatarHtml(tp || { username: activeRoom.name });
-        $('call-status-label').textContent = 'Ringing...'; $('banner-call-text').textContent = `Call in ${activeRoom.name}`;
-        $('incoming-call-controls').classList.add('hidden'); $('active-call-controls').classList.remove('hidden');
-        openCallModal(); startRingtone(false);
-        const { error } = await sb.from('calls').insert({ id: callId, room_id: activeRoom.id, room_name: activeRoom.name, room_type: activeRoom.type, caller_name: me.username, callee_id: activeRoom.targetUid || null, mode, status: 'ringing', offer: { type: offer.type, sdp: offer.sdp } });
-        if (error) throw error; callRowReady = true;
-        for (const c of candQueue) await sendCandidate(callId, c); candQueue = [];
-        ringTimeout = setTimeout(() => { if (activeCall?.status === 'ringing') { showToast('No answer.', 'info'); endCurrentCall(true); } }, 45000);
-    } catch (err) { showToast('Could not start call: ' + errText(err), 'error'); cleanupCallState(); } finally { callStarting = false; }
-};
-const isFresh = (call) => Date.now() - new Date(call.created_at).getTime() < 60000;
-function onCallInsert(call) {
-    if (!me || call.caller_id === me.id || activeCall || call.status !== 'ringing' || !isFresh(call) || me.presence === 'dnd' || isInQuietHours()) return;
-    if (call.callee_id && !canDirect(call.caller_id)) return;
-    if (call.callee_id === me.id || (!call.callee_id && call.room_type === 'channel' && call.room_id === activeRoom.id)) presentIncomingCall(call);
-}
-async function checkPendingCalls() {
-    if (!me || activeCall || me.presence === 'dnd' || isInQuietHours()) return;
-    const since = new Date(Date.now() - 50000).toISOString();
-    const { data } = await sb.from('calls').select('*').eq('status', 'ringing').gt('created_at', since).neq('caller_id', me.id).order('created_at', { ascending: false }).limit(5);
-    const c = (data || []).find(x => x.callee_id === me.id && canDirect(x.caller_id)); if (c && !activeCall) presentIncomingCall(c);
-}
-function presentIncomingCall(call) {
-    activeCall = call; isCaller = false; callAccepted = false; callRowReady = true; const cp = profiles.get(call.caller_id);
-    $('call-modal-title').textContent = `KLYXORA // Incoming ${call.mode === 'video' ? 'Video' : 'Voice'} Call`;
-    $('call-modal-subtitle').textContent = `From ${call.caller_name}`; $('call-peer-name').textContent = call.caller_name;
-    $('call-pulse-avatar').innerHTML = renderAvatarHtml(cp || { username: call.caller_name });
-    $('call-status-label').textContent = 'Incoming Call...'; $('banner-call-text').textContent = `Call with ${call.caller_name}`;
-    $('incoming-call-controls').classList.remove('hidden'); $('active-call-controls').classList.add('hidden');
-    openCallModal(); startRingtone(true); try { navigator.vibrate?.([300, 150, 300, 150, 300]); } catch (_) {}
-    notify(`Incoming ${call.mode === 'video' ? 'video' : 'voice'} call`, `${call.caller_name} is calling you`, { tag: 'call', urgent: true, roomId: call.room_id, callId: call.id }).then(n => { callNotif = n; });
-}
-window.acceptIncomingCall = async () => {
-    if (!activeCall || isCaller) return; stopRingtone(); unlockAudioContext(); const call = activeCall;
-    try {
-        callAccepted = true; const stream = await acquireLocalMedia(call.mode || 'video'); attachLocalStreamToUI(stream, call.mode || 'video');
-        setupPeerConnection(call.id); await pc.setRemoteDescription(new RTCSessionDescription(call.offer)); remoteDescSet = true;
-        const answer = await pc.createAnswer(); await pc.setLocalDescription(answer);
-        const { data, error } = await sb.from('calls').update({ status: 'connected', answer: { type: answer.type, sdp: answer.sdp } }).eq('id', call.id).eq('status', 'ringing').select();
-        if (error) throw error; if (!data?.length) { showToast('Call ended.', 'info'); return cleanupCallState(); }
-        activeCall = data[0]; $('incoming-call-controls').classList.add('hidden'); $('active-call-controls').classList.remove('hidden');
-        $('call-status-label').textContent = 'Connected'; $('call-modal-subtitle').textContent = 'Live Encrypted Stream'; startCallTimer();
-        const { data: cands } = await sb.from('call_candidates').select('*').eq('call_id', call.id).neq('sender_id', me.id).order('id');
-        for (const c of (cands || [])) { if (!seenCand.has(c.id)) { seenCand.add(c.id); await addRemoteCandidate(c.candidate); } }
-        await flushPendingIce();
-    } catch (err) { showToast('Could not answer call: ' + errText(err), 'error'); cleanupCallState(); }
-};
-window.declineIncomingCall = async () => { if (!activeCall) return; if (activeCall.callee_id) await sb.from('calls').update({ status: 'declined' }).eq('id', activeCall.id).eq('status', 'ringing'); cleanupCallState(); showToast('Call declined.', 'info'); };
-async function onCallUpdate(call) {
-    if (!activeCall || call.id !== activeCall.id) return; activeCall = call;
-    if (call.status === 'declined' || call.status === 'ended') { showToast(call.status === 'declined' ? 'Call was declined.' : 'Call ended.', 'info'); return cleanupCallState(); }
-    if (call.status === 'connected') {
-        if (!isCaller && !callAccepted) { showToast('Call answered elsewhere.', 'info'); return cleanupCallState(); }
-        stopRingtone(); clearTimeout(ringTimeout); $('call-status-label').textContent = 'Connected'; $('call-modal-subtitle').textContent = 'Live Encrypted Stream';
-        if (!callTimerInterval) startCallTimer();
-        if (isCaller && call.answer && pc && !remoteDescSet) try { await pc.setRemoteDescription(new RTCSessionDescription(call.answer)); remoteDescSet = true; await flushPendingIce(); } catch (_) {}
-    }
-}
-async function onCandidateInsert(row) { if (activeCall && row.call_id === activeCall.id && row.sender_id !== me.id && !seenCand.has(row.id)) { seenCand.add(row.id); await addRemoteCandidate(row.candidate); } }
-function startCallTimer() {
-    if (callTimerInterval) clearInterval(callTimerInterval); burst(innerWidth / 2, innerHeight / 2, '🎉', 18); callSeconds = 0;
-    $('call-timer-display').textContent = '00:00'; $('banner-call-timer').textContent = '00:00';
-    callTimerInterval = setInterval(() => { callSeconds++; const f = formatDuration(callSeconds); $('call-timer-display').textContent = f; $('banner-call-timer').textContent = f; }, 1000);
-}
-window.toggleMuteMic = () => { if (!rawCamStream) return; isMicMuted = !isMicMuted; rawCamStream.getAudioTracks().forEach(t => { t.enabled = !isMicMuted; }); $('icon-mic-on').classList.toggle('hidden', isMicMuted); $('icon-mic-off').classList.toggle('hidden', !isMicMuted); };
-window.toggleCamera = () => { if (!rawCamStream) return; const v = rawCamStream.getVideoTracks(); if (!v.length) return showToast('No video track active.', 'info'); isCamOff = !isCamOff; v.forEach(t => { t.enabled = !isCamOff; }); $('icon-cam-on').classList.toggle('hidden', isCamOff); $('icon-cam-off').classList.toggle('hidden', !isCamOff); };
-window.openCallModal = () => { $('call-modal').classList.remove('hidden'); $('call-modal').classList.add('flex'); $('active-call-banner').classList.add('hidden'); };
-window.minimizeCallModal = () => { $('call-modal').classList.add('hidden'); $('call-modal').classList.remove('flex'); if (activeCall) $('active-call-banner').classList.remove('hidden'); };
-window.endCurrentCall = async (shouldLog = true) => {
-    if (!activeCall) return; const call = activeCall, wasConnected = callSeconds > 0 || call.status === 'connected', duration = formatDuration(callSeconds), roomId = call.room_id;
-    try { await sb.from('calls').update({ status: 'ended' }).eq('id', call.id).in('status', ['ringing', 'connected']); } catch (_) {}
-    if (shouldLog && me && (isCaller || wasConnected)) {
-        const text = wasConnected ? `Call ended • Duration ${duration}` : 'Call cancelled • No answer';
-        const { data } = await sb.from('messages').insert({ room_id: roomId, sender_name: me.username, text, type: 'call_log' }).select().single();
-        if (data && roomId === activeRoom.id && !messages.find(m => m.id === data.id)) { messages.push(data); renderMessages(true); }
-    }
-    cleanupCallState();
-};
-function cleanupCallState() {
-    stopRingtone(); teardownAudioMixer(); clearInterval(camFxTimer); camFxTimer = null;
-    if (screenTrack) { try { screenTrack.stop(); } catch (_) {} screenTrack = null; }
-    if (callCaptionsRec) { try { callCaptionsRec.stop(); } catch (_) {} isCaptionsOn = false; }
-    try { navigator.vibrate?.(0); if (callNotif) { callNotif.close(); callNotif = null; } swReg?.getNotifications({ tag: 'call' }).then(l => l.forEach(n => n.close())); } catch (_) {}
-    clearTimeout(ringTimeout); ringTimeout = null; if (callTimerInterval) { clearInterval(callTimerInterval); callTimerInterval = null; }
-    if (simInterval) { clearInterval(simInterval); simInterval = null; } if (simAudioCtx) { try { simAudioCtx.close(); } catch (_) {} simAudioCtx = null; }
-    if (pc) { try { pc.close(); } catch (_) {} pc = null; }
-    rawCamStream?.getTracks().forEach(t => { try { t.stop(); } catch (_) {} }); rawCamStream = null;
-    if (localStream) { localStream.getTracks().forEach(t => { try { t.stop(); } catch (_) {} }); localStream = null; }
-    activeCall = null; isCaller = false; callAccepted = false; callRowReady = false;
-    pendingIce = []; candQueue = []; seenCand = new Set(); remoteDescSet = false; callSeconds = 0;
-    $('remote-video').srcObject = null; $('remote-video').classList.add('hidden'); $('remote-audio').srcObject = null;
-    $('local-video').srcObject = null; $('local-video-wrapper').classList.add('hidden'); $('call-avatar-stage').classList.remove('hidden');
-    $('active-call-banner').classList.add('hidden'); $('call-timer-display').textContent = '00:00';
-    $('call-modal').classList.add('hidden'); $('call-modal').classList.remove('flex');
-}
-
-if (window.visualViewport) { const sync = () => { document.documentElement.style.setProperty('--app-h', window.visualViewport.height + 'px'); window.scrollTo(0, 0); }; window.visualViewport.addEventListener('resize', sync); sync(); }
-document.addEventListener('visibilitychange', async () => {
-    syncPrivacyBlurState();
-    if (document.visibilityState === 'visible') { unseenCount = 0; document.title = baseTitle; }
-    if (document.visibilityState !== 'visible' || !me || activeCall) return;
-    try {
-        await Promise.all([loadProfiles(), loadFriendships()]); checkPendingCalls();
-        const room = activeRoom, { data } = await sb.from('messages').select('*').eq('room_id', room.id).order('created_at', { ascending: false }).limit(200);
-        if (data && room.id === activeRoom.id) { messages = data.reverse(); renderMessages(false); }
-        await trackMyPresenceLocation();
-    } catch (_) {}
-});
-
-window.triggerChatImagePicker = () => { if (!me) return; if (activeRoom.type === 'dm' && !canDirect(activeRoom.targetUid)) return showToast('Add them as a friend first.', 'info'); const inp = $('chat-image-input'); if (inp) { inp.value = ''; inp.click(); } };
-window.handleChatImageSelected = async (e) => {
-    const file = e?.target?.files?.[0]; if (!file || !me || !sb) return;
-    if (!file.type.startsWith('image/')) return showToast('Select an image file.', 'error');
-    if (file.size > 5 * 1024 * 1024) return showToast('Image must be 5 MB or smaller.', 'error');
-    const roomId = activeRoom.id, ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
-    const fp = `chat/${me.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error: ue } = await sb.storage.from('avatars').upload(fp, file, { upsert: false, contentType: file.type });
-    if (ue) return showToast(errText(ue), 'error');
-    const imageUrl = sb.storage.from('avatars').getPublicUrl(fp).data?.publicUrl; if (!imageUrl) return;
-    const { data, error } = await sb.from('messages').insert({ room_id: roomId, sender_name: me.username, text: imageUrl, type: 'image' }).select().single();
-    if (error) return showToast(errText(error), 'error');
-    if (roomId === activeRoom.id && !messages.find(m => m.id === data.id)) { messages.push(data); renderMessages(true); }
-};
-
-// --- DARK-MODE SNAP MAP, 800MS GLIDING, SONAR RINGS & 16x16 PIXEL EDITOR ---
-const AMO_PIXMAPS = [
-    { grid: ['....######......','...########.....','..###.####.###..','..############..','..############..','...##########...','....########....','...##########...','..####....####..','.####......####.','.###........###.','..##........##..','................','................','................','................'], palette: { '#': '#C084FC', '.': null } },
-    { grid: ['.......##.......','......####......','.....######.....','....########....','...##########...','..############..','.##############.','################','.##############.','..############..','...##########...','....########....','.....######.....','......####......','.......##.......','................'], palette: { '#': '#A855F7', '.': null } },
-    { grid: ['.......##.......','.......##.......','...##########...','..############..','..##.##..##.##..','..##.##..##.##..','..############..','..####....####..','..############..','...##########...','....###..###....','....###..###....','................','................','................','................'], palette: { '#': '#E9D5FF', '.': null } }
+const CMD_ITEMS = [
+    { label: 'Toggle Zen Mode', hint: 'Ctrl+\\', run: () => toggleZenMode() },
+    { label: 'Search Messages in Room', hint: 'Filter', run: () => toggleChatSearch(true) },
+    { label: 'Open Draw Together Whiteboard', hint: 'Canvas', run: () => openWhiteboardModal() },
+    { label: 'Open Watch Together', hint: 'YouTube', run: () => openWatchModal() },
+    { label: 'Open Friend Radar Map', hint: 'Map', run: () => openAmoMapModal() },
+    { label: 'Open Appearance Studio', hint: '16 Themes', run: () => openProfileModal() },
+    { label: 'Export Chat (.txt)', hint: 'Download', run: () => exportChatTxt() },
+    ...THEMES.map(t => ({ label: `Theme: ${t.name}`, hint: t.tag, run: () => setTheme(t.id) }))
 ];
-let amoPixmapIdx = 0, sidebarMap = null, modalMap = null;
-const sidebarMarkerMap = new Map(), modalMarkerMap = new Map();
-let myCoords = { lat: 20, lng: 0 }, locPrivacyMode = lsGet('px_loc_mode') || 'ghost', mapStatusBubble = lsGet('px_map_bubble') || '';
-let lastFitKey = '', lastSentKey = '', geoWatchId = null;
-const activeUserLocations = new Map(), pixmapDataUrlCache = new Map();
-let customPixmap = lsJson('px_custom_pixmap', null);
-
-function customGridToDataUrl(grid) {
-    const c = document.createElement('canvas'); c.width = 16; c.height = 16; const ctx = c.getContext('2d');
-    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) { const col = grid?.[y]?.[x]; if (col) { ctx.fillStyle = col; ctx.fillRect(x, y, 1, 1); } }
-    return c.toDataURL();
-}
-function getPixmapDataUrl(idx, customUrl = null) {
-    if (customUrl && /^data:image\/png;base64,/.test(customUrl)) return customUrl;
-    const safeIdx = ((idx % AMO_PIXMAPS.length) + AMO_PIXMAPS.length) % AMO_PIXMAPS.length;
-    if (pixmapDataUrlCache.has(safeIdx)) return pixmapDataUrlCache.get(safeIdx);
-    const sprite = AMO_PIXMAPS[safeIdx], c = document.createElement('canvas'); c.width = 16; c.height = 16; const ctx = c.getContext('2d');
-    sprite.grid.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const col = sprite.palette[row[x]]; if (col) { ctx.fillStyle = col; ctx.fillRect(x, y, 1, 1); } } });
-    const url = c.toDataURL(); pixmapDataUrlCache.set(safeIdx, url); return url;
-}
-function renderAmoPixmap() {
-    const canvas = $('amo-pixmap-canvas'); if (!canvas) return; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 16, 16);
-    if (customPixmap) { for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) { const col = customPixmap[y]?.[x]; if (col) { ctx.fillStyle = col; ctx.fillRect(x, y, 1, 1); } } return; }
-    const sprite = AMO_PIXMAPS[amoPixmapIdx % AMO_PIXMAPS.length];
-    sprite.grid.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const col = sprite.palette[row[x]]; if (col) { ctx.fillStyle = col; ctx.fillRect(x, y, 1, 1); } } });
-}
-function renderCustomPixelEditor() {
-    const gridEl = $('pixel-editor-grid'); if (!gridEl) return;
-    if (!customPixmap) customPixmap = Array.from({ length: 16 }, () => Array(16).fill(''));
-    gridEl.innerHTML = '';
-    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-        const cell = document.createElement('button'); cell.type = 'button';
-        cell.style.cssText = `width:13px;height:13px;background:${customPixmap[y][x] || 'rgba(0,0,0,0.45)'};border-radius:2px`;
-        cell.onclick = () => { const col = $('pixel-editor-color')?.value || '#C084FC'; customPixmap[y][x] = customPixmap[y][x] === col ? '' : col; cell.style.background = customPixmap[y][x] || 'rgba(0,0,0,0.45)'; lsSet('px_custom_pixmap', JSON.stringify(customPixmap)); renderAmoPixmap(); trackMyPresenceLocation(); };
-        gridEl.appendChild(cell);
-    }
-}
-window.clearCustomPixmap = () => { customPixmap = null; lsSet('px_custom_pixmap', ''); renderCustomPixelEditor(); renderAmoPixmap(); trackMyPresenceLocation(); };
-
-const roundCoord = (v) => Math.round(v * 100) / 100;
-const validCoord = (lat, lng) => Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-function formatFreshness(at, mode) { if (!at) return mode === 'approx' ? '~1 km' : 'Live • Now'; const mins = Math.floor((Date.now() - at) / 60000); return mins < 1 ? (mode === 'approx' ? '~1 km • Now' : 'Live • Now') : `${mins}m ago`; }
-
-function syncActiveUserLocationsFromPresence(state) {
-    if (!state) return; activeUserLocations.clear();
-    Object.entries(state).forEach(([uid, metas]) => {
-        const m = Array.isArray(metas) && metas.length ? metas[metas.length - 1] : {};
-        if (validCoord(m.lat, m.lng)) activeUserLocations.set(uid, { lat: m.lat, lng: m.lng, pixmapIdx: Number.isInteger(m.pixmapIdx) ? m.pixmapIdx : 0, customUrl: m.customUrl || null, bubble: m.bubble || '', mode: m.locMode || 'approx', at: m.at || Date.now() });
+window.openCommandPalette = () => { $('cmd-palette-modal').classList.remove('hidden'); $('cmd-palette-modal').classList.add('flex'); $('cmd-palette-input').value = ''; renderCmdList(''); $('cmd-palette-input').focus(); };
+window.closeCommandPalette = () => { $('cmd-palette-modal').classList.add('hidden'); $('cmd-palette-modal').classList.remove('flex'); };
+function renderCmdList(q) {
+    const l = $('cmd-palette-list'); l.innerHTML = ''; const ql = q.trim().toLowerCase();
+    CMD_ITEMS.filter(x => !ql || x.label.toLowerCase().includes(ql) || x.hint.toLowerCase().includes(ql)).slice(0, 12).forEach(it => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'w-full px-3 py-2 rounded-xl hover:bg-pixie-800/50 flex items-center justify-between text-xs text-left';
+        b.innerHTML = `<span class="font-semibold text-white">${escapeHtml(it.label)}</span><span class="font-mono text-[10px] text-pixie-300">${escapeHtml(it.hint)}</span>`;
+        b.onclick = () => { closeCommandPalette(); it.run(); }; l.appendChild(b);
     });
-    if (me && locPrivacyMode !== 'ghost' && validCoord(myCoords.lat, myCoords.lng) && myCoords.lat !== 20) {
-        activeUserLocations.set(me.id, { lat: locPrivacyMode === 'precise' ? myCoords.lat : roundCoord(myCoords.lat), lng: locPrivacyMode === 'precise' ? myCoords.lng : roundCoord(myCoords.lng), pixmapIdx: amoPixmapIdx, customUrl: customPixmap ? customGridToDataUrl(customPixmap) : null, bubble: mapStatusBubble, mode: locPrivacyMode, at: Date.now() });
-    }
 }
-function getActiveUsersList() {
-    const list = [];
-    activeUserLocations.forEach((loc, uid) => { if (uid !== me?.id && !canDirect(uid)) return; const prof = profiles.get(uid) || (uid === me?.id ? me : null); if (!prof?.banned) list.push({ id: uid, username: prof?.username || 'User', ...loc }); });
-    return list;
-}
-function initFreeLeafletMaps() {
-    if (typeof L === 'undefined') return;
-    const darkUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', darkOpt = { maxZoom: 19, attribution: '&copy; OpenStreetMap &copy; CARTO' };
-    if (!sidebarMap && $('amo-free-map')) { sidebarMap = L.map('amo-free-map', { zoomControl: false, attributionControl: false }).setView([myCoords.lat, myCoords.lng], 2); L.tileLayer(darkUrl, darkOpt).addTo(sidebarMap); }
-    if (!modalMap && $('amo-free-map-modal')) { modalMap = L.map('amo-free-map-modal', { zoomControl: true }).setView([myCoords.lat, myCoords.lng], 2); L.tileLayer(darkUrl, darkOpt).addTo(modalMap); }
-    renderAllActivePixmapsOnMap();
-}
-function glideMarker(marker, targetLat, targetLng) {
-    const start = marker.getLatLng(); if (Math.abs(start.lat - targetLat) < 1e-6 && Math.abs(start.lng - targetLng) < 1e-6) return;
-    if (marker._glideRaf) cancelAnimationFrame(marker._glideRaf);
-    const t0 = performance.now(), dur = 800;
-    const step = (now) => { const p = Math.min(1, (now - t0) / dur), ease = 1 - Math.pow(1 - p, 3); marker.setLatLng([start.lat + (targetLat - start.lat) * ease, start.lng + (targetLng - start.lng) * ease]); if (p < 1) marker._glideRaf = requestAnimationFrame(step); };
-    marker._glideRaf = requestAnimationFrame(step);
-}
-window.sendMapWave = (uid) => { if (me && uid && uid !== me.id) { broadcastRoomEvent('map_wave', { fromId: me.id, fromName: me.username, toId: uid }); showToast('Wave sent!', 'success'); } };
-window.flyToFriendOnMap = (uid) => { const u = getActiveUsersList().find(x => x.id === uid); if (u && modalMap) modalMap.flyTo([u.lat, u.lng], 14, { duration: 0.8 }); };
+$('cmd-palette-input')?.addEventListener('input', (e) => renderCmdList(e.target.value));
+$('cmd-palette-modal')?.addEventListener('click', (e) => { if (e.target === $('cmd-palette-modal')) closeCommandPalette(); });
+document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openCommandPalette(); }
+    else if ((e.metaKey || e.ctrlKey) && e.key === '\\') { e.preventDefault(); toggleZenMode(); }
+    else if (e.key === 'Escape') closeCommandPalette();
+});
 
+window.triggerChatImagePicker = () => $('chat-image-input')?.click();
+window.handleChatImageSelected = async (event) => {
+    const file = event.target?.files?.[0]; event.target.value = ''; if (!file || !sb || !me) return;
+    if (activeRoom.type === 'dm' && !canDirect(activeRoom.targetUid)) return showToast('Add them as a friend first.', 'info');
+    if (file.size > 4 * 1024 * 1024) return showToast('Image must be 4 MB or smaller.', 'error');
+    const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+    const fp = `chat/${me.id}/${Date.now()}.${ext}`, { error: ue } = await sb.storage.from('avatars').upload(fp, file, { upsert: false, contentType: file.type });
+    if (ue) return showToast('Upload failed: ' + errText(ue), 'error');
+    const url = sb.storage.from('avatars').getPublicUrl(fp).data.publicUrl;
+    const { data, error } = await sb.from('messages').insert({ room_id: activeRoom.id, sender_name: me.username, text: url, type: 'image' }).select().single();
+    if (error) return showToast(errText(error), 'error');
+    if (!messages.find(m => m.id === data.id)) { messages.push(data); renderMessages(true); }
+};
+
+// --- FRIEND RADAR / MAP ENGINE ---
+const AMO_PALETTE = { '.': null, 'K': '#070709', 'O': '#FDBA74', 'P': '#C084FC', 'D': '#6B21A8', 'W': '#F8FAFC', 'R': '#F43F5E', 'C': '#38BDF8', 'E': '#34D399' };
+const AMO_SPRITES = [
+    ['................','....KKKKKKKK....','...KPPPPPPPPK...','..KPPPPPPPPPPK..','..KPPWWWWWWPPK..','..KPPWWKKWWPPK..','..KPPWWWWWWPPK..','..KPPPPPPPPPPK..','...KDDDDDDDDK...','..KPPDDDDDDPPK..','..KPPKDDDDKPPK..','..KPPKDDDDKPPK..','...KK.KDDK.KK...','......KDDK......','.....KK..KK.....','................'],
+    ['................','.....KKKKKK.....','....KCCCCCCK....','...KCCCCCCCCK...','...KCCWWWWCCK...','...KCCWKKWCCK...','...KCCWWWWCCK...','....KCCCCCCK....','...KKDDDDDDKK...','..KCCKDDDDKCCK..','..KCCKDDDDKCCK..','...KK.KDDK.KK...','......KDDK......','.....KK..KK.....','................','................'],
+    ['................','....KKKKKKKK....','...KRRRRRRRRK...','..KRRRRRRRRRRK..','..KRRWWWWWWWRK..','..KRRWWKKWWRRK..','..KRRWWWWWWWRK..','...KRRRRRRRRK...','...KKDDDDDDKK...','..KRRKDDDDKRRK..','..KRRKDDDDKRRK..','...KK.KDDK.KK...','......KDDK......','.....KK..KK.....','................','................'],
+    ['................','....KKKKKKKK....','...KEEEEEEEEK...','..KEEEEEEEEEEK..','..KEEWWWWWWEEK..','..KEEWWKKWWEK..','..KEEWWWWWWEEK..','...KEEEEEEEEK...','...KKDDDDDDKK...','..KEEKDDDDKEEK..','..KEEKDDDDKEEK..','...KK.KDDK.KK...','......KDDK......','.....KK..KK.....','................','................']
+];
+const customGrid = () => { const g = lsJson('px_custom_sprite', null); return Array.isArray(g) && g.length === 256 ? g : null; };
+let amoPixmapIndex = Number(lsGet('px_amo_sprite') || 0), locPrivacyMode = lsGet('px_loc_mode') || 'ghost', mapStatusBubble = lsGet('px_map_tag') || '';
+const activeUserLocations = new Map(), pixmapMarkerByUid = new Map(), pixmapModalMarkerByUid = new Map();
+let amoMap = null, amoMapModal = null, amoGeoWatchId = null, amoLastPush = 0, amoLatestCoords = null;
+
+function drawSpriteToCanvas(canvas, idx) {
+    if (!canvas) return; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, 16, 16);
+    const cg = customGrid();
+    if (cg && idx === -1) { for (let i = 0; i < 256; i++) { if (cg[i]) { ctx.fillStyle = cg[i]; ctx.fillRect(i % 16, Math.floor(i / 16), 1, 1); } } return; }
+    const sp = AMO_SPRITES[((idx % AMO_SPRITES.length) + AMO_SPRITES.length) % AMO_SPRITES.length];
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) { const col = AMO_PALETTE[sp[y][x]]; if (col) { ctx.fillStyle = col; ctx.fillRect(x, y, 1, 1); } }
+}
+function spriteDataUrl(idx) { const c = document.createElement('canvas'); c.width = 16; c.height = 16; drawSpriteToCanvas(c, idx); return c.toDataURL(); }
+function renderCustomPixelEditor() {
+    const grid = $('pixel-editor-grid'); if (!grid) return; grid.innerHTML = '';
+    const saved = customGrid() || Array(256).fill(null);
+    saved.forEach((col, i) => {
+        const cell = document.createElement('button'); cell.type = 'button'; cell.className = 'w-[13px] h-[13px] block'; cell.style.background = col || 'rgba(255,255,255,0.03)';
+        cell.onclick = () => { const cur = customGrid() || Array(256).fill(null); const pc = $('pixel-editor-color')?.value || '#C084FC'; cur[i] = cur[i] === pc ? null : pc; lsSet('px_custom_sprite', JSON.stringify(cur)); cell.style.background = cur[i] || 'rgba(255,255,255,0.03)'; drawSpriteToCanvas($('amo-pixmap-canvas'), -1); renderAllActivePixmapsOnMap(); };
+        grid.appendChild(cell);
+    });
+}
+window.clearCustomPixmap = () => { lsSet('px_custom_sprite', 'null'); renderCustomPixelEditor(); drawSpriteToCanvas($('amo-pixmap-canvas'), amoPixmapIndex); };
+window.cycleAmoPixmap = () => { amoPixmapIndex = (amoPixmapIndex + 1) % AMO_SPRITES.length; lsSet('px_amo_sprite', String(amoPixmapIndex)); drawSpriteToCanvas($('amo-pixmap-canvas'), amoPixmapIndex); renderAllActivePixmapsOnMap(); trackMyPresenceLocation(true); };
+window.setMapStatusBubble = (v) => { mapStatusBubble = v; lsSet('px_map_tag', v); trackMyPresenceLocation(true); renderAllActivePixmapsOnMap(); };
+
+function updateLocPrivacyUI() {
+    const lbl = $('amo-privacy-label'), btn = $('bump-amo-btn');
+    const txt = locPrivacyMode === 'precise' ? 'Live Precise' : locPrivacyMode === 'approx' ? 'Approx ~1km' : 'Ghost Mode';
+    if (lbl) lbl.textContent = txt; if (btn) btn.textContent = locPrivacyMode === 'precise' ? 'Precise' : locPrivacyMode === 'approx' ? 'Approx' : 'Ghost';
+    document.querySelectorAll('.loc-mode-btn').forEach(b => { const on = b.dataset.locbtn === locPrivacyMode; b.className = `loc-mode-btn px-2.5 py-1 rounded-xl text-xs font-mono font-bold border ${on ? 'bg-pixie-600 text-white border-pixie-400' : 'bg-carbon-950 text-slate-400 border-white/10'}`; });
+}
+window.setLocPrivacyMode = (mode) => {
+    locPrivacyMode = ['ghost', 'approx', 'precise'].includes(mode) ? mode : 'ghost'; lsSet('px_loc_mode', locPrivacyMode); updateLocPrivacyUI();
+    if (locPrivacyMode === 'ghost') { if (me) activeUserLocations.delete(me.id); renderAllActivePixmapsOnMap(); trackMyPresenceLocation(true); showToast('Ghost Mode: hidden from map.', 'info'); }
+    else { startGeolocationWatch(true); showToast(locPrivacyMode === 'precise' ? 'Sharing live precise location.' : 'Sharing approximate (~1km) location.', 'success'); }
+};
+window.cycleLocPrivacyMode = () => setLocPrivacyMode(locPrivacyMode === 'ghost' ? 'approx' : locPrivacyMode === 'approx' ? 'precise' : 'ghost');
+
+function formatCoords(lat, lng) { if (typeof lat !== 'number' || typeof lng !== 'number') return 'Map'; const j = locPrivacyMode === 'approx' ? 0.01 : 0.0001; return `${(Math.round(lat / j) * j).toFixed(2)}, ${(Math.round(lng / j) * j).toFixed(2)}`; }
+function applyPrivacyJitter(lat, lng, mode) { if (mode !== 'approx') return { lat, lng }; return { lat: lat + (Math.sin(lat * 100) * 0.006), lng: lng + (Math.cos(lng * 100) * 0.006) }; }
+async function trackMyPresenceLocation(force = false) {
+    if (!presenceChannel || !me) return;
+    const now = Date.now(); if (!force && now - amoLastPush < 4000) return; amoLastPush = now;
+    const share = locPrivacyMode !== 'ghost' && amoLatestCoords, adj = share ? applyPrivacyJitter(amoLatestCoords.lat, amoLatestCoords.lng, locPrivacyMode) : null;
+    try { await presenceChannel.track({ user_id: me.id, username: me.username, avatar_url: me.avatar_url || null, mood: myMood || '', mapTag: mapStatusBubble || '', sprite: customGrid() && amoPixmapIndex === -1 ? -1 : amoPixmapIndex, locMode: locPrivacyMode, lat: share ? adj.lat : null, lng: share ? adj.lng : null, updatedAt: now }); } catch (_) {}
+    if (share) { activeUserLocations.set(me.id, { userId: me.id, username: me.username, avatar_url: me.avatar_url, lat: adj.lat, lng: adj.lng, sprite: amoPixmapIndex, locMode: locPrivacyMode, mapTag: mapStatusBubble, updatedAt: now }); renderAllActivePixmapsOnMap(); }
+}
+function startGeolocationWatch(force = false) {
+    if (locPrivacyMode === 'ghost' || !('geolocation' in navigator)) return;
+    const onPos = (pos) => { amoLatestCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; trackMyPresenceLocation(true); };
+    navigator.geolocation.getCurrentPosition(onPos, () => {}, { enableHighAccuracy: locPrivacyMode === 'precise', maximumAge: 10000, timeout: 8000 });
+    if (force && amoGeoWatchId !== null) { navigator.geolocation.clearWatch(amoGeoWatchId); amoGeoWatchId = null; }
+    if (amoGeoWatchId === null) amoGeoWatchId = navigator.geolocation.watchPosition(onPos, () => {}, { enableHighAccuracy: locPrivacyMode === 'precise', maximumAge: 15000, timeout: 12000 });
+}
+function syncActiveUserLocationsFromPresence(state) {
+    if (!me) return; const next = new Map();
+    Object.entries(state || {}).forEach(([uid, metas]) => {
+        const m = Array.isArray(metas) && metas.length ? metas[metas.length - 1] : null;
+        if (!m || typeof m.lat !== 'number' || typeof m.lng !== 'number' || m.locMode === 'ghost') return;
+        if (uid !== me.id && !canDirect(uid)) return;
+        const p = profiles.get(uid);
+        next.set(uid, { userId: uid, username: p?.username || m.username || 'Friend', avatar_url: p?.avatar_url || m.avatar_url || null, lat: m.lat, lng: m.lng, sprite: typeof m.sprite === 'number' ? m.sprite : 0, locMode: m.locMode || 'approx', mapTag: m.mapTag || '', updatedAt: m.updatedAt || Date.now() });
+    });
+    activeUserLocations.clear(); next.forEach((v, k) => activeUserLocations.set(k, v));
+}
+function ensureLeafletMap(elId, existing) {
+    if (existing) { setTimeout(() => existing.invalidateSize(), 80); return existing; }
+    const el = $(elId); if (!el || typeof L === 'undefined') return null;
+    const m = L.map(elId, { zoomControl: false, attributionControl: true }).setView([42.6977, 23.3219], 12);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '&copy; OSM &copy; CARTO' }).addTo(m);
+    setTimeout(() => m.invalidateSize(), 120); return m;
+}
+function makePixmapIcon(loc) {
+    const waving = (peerWaves.get(loc.userId) || 0) > Date.now();
+    const tag = `${escapeHtml(loc.username)}${loc.mapTag ? ' • ' + escapeHtml(loc.mapTag) : ''}`;
+    return L.divIcon({ className: '', html: `<div class="pixmap-marker-wrap"><div class="pixmap-sonar"></div>${waving ? '<div class="pixmap-wave-ring"></div>' : ''}<img src="${spriteDataUrl(loc.sprite)}" class="pixmap-marker-img" alt=""><div class="pixmap-marker-tag">${tag}</div><div class="pixmap-marker-meta">${loc.locMode === 'precise' ? 'Live' : '~1km'}</div></div>`, iconSize: [0, 0], iconAnchor: [0, 0] });
+}
 function renderAllActivePixmapsOnMap() {
-    const users = getActiveUsersList();
-    if ($('amo-active-count')) $('amo-active-count').textContent = String(users.length);
-    if ($('amo-modal-count')) $('amo-modal-count').textContent = String(users.length);
+    if (!me) return;
+    const visible = Array.from(activeUserLocations.values()).filter(x => x.userId === me.id ? locPrivacyMode !== 'ghost' : canDirect(x.userId));
+    if ($('amo-active-count')) $('amo-active-count').textContent = String(visible.length);
+    if ($('amo-modal-count')) $('amo-modal-count').textContent = String(visible.length);
     const strip = $('amo-friend-strip');
     if (strip) {
-        strip.innerHTML = users.length ? '' : '<span class="text-xs font-mono text-slate-400">No active pins yet. Enable Approx or Live Precise above.</span>';
-        users.forEach(u => {
-            const b = document.createElement('button'); b.type = 'button'; b.onclick = () => flyToFriendOnMap(u.id);
-            b.className = 'btn-spring px-2.5 py-1.5 rounded-xl carbon-card text-xs font-semibold text-white flex items-center gap-1.5 shrink-0 hover:border-pixie-400';
-            b.innerHTML = `<img src="${getPixmapDataUrl(u.pixmapIdx, u.customUrl)}" class="w-4 h-4" style="image-rendering:pixelated"><span>${escapeHtml(u.username)}</span>${u.id !== me?.id ? `<span onclick="event.stopPropagation();sendMapWave('${escapeHtml(u.id)}')" class="ml-1 px-1.5 py-0.5 rounded bg-pixie-700 text-[10px]">👋</span>` : ''}`;
-            strip.appendChild(b);
+        strip.innerHTML = visible.length ? '' : '<span class="text-xs text-slate-400 font-mono">No friends sharing location right now.</span>';
+        visible.forEach(x => {
+            const chip = document.createElement('div'); chip.className = 'carbon-card rounded-xl px-2.5 py-1.5 flex items-center gap-2 shrink-0 text-xs';
+            chip.innerHTML = `<img src="${spriteDataUrl(x.sprite)}" class="w-5 h-5" style="image-rendering:pixelated"><span class="font-semibold">${escapeHtml(x.username)}</span>${x.mapTag ? `<span class="text-[10px] font-mono text-pixie-300">${escapeHtml(x.mapTag)}</span>` : ''}${x.userId !== me.id ? `<button type="button" onclick="waveAtFriend('${escapeHtml(x.userId)}')" class="px-1.5 py-0.5 rounded bg-pixie-700 text-white text-[10px] font-bold">Wave</button>` : ''}`;
+            strip.appendChild(chip);
         });
     }
-    if (typeof L === 'undefined') return;
-    const key = users.map(u => u.id).sort().join(','), refit = key !== lastFitKey; lastFitKey = key; const now = Date.now();
-    [{ map: sidebarMap, store: sidebarMarkerMap, isModal: false }, { map: modalMap, store: modalMarkerMap, isModal: true }].forEach(({ map, store, isModal }) => {
-        if (!map) return; const activeSet = new Set(users.map(u => u.id));
-        store.forEach((m, uid) => { if (!activeSet.has(uid)) { try { map.removeLayer(m); } catch (_) {} store.delete(uid); } });
-        users.forEach(u => {
-            const waved = (peerWaves.get(u.id) || 0) > now;
-            const html = `<div class="pixmap-marker-wrap"><div class="pixmap-sonar"></div>${waved ? '<div class="pixmap-wave-ring"></div>' : ''}<img class="pixmap-marker-img" src="${getPixmapDataUrl(u.pixmapIdx, u.customUrl)}" alt="" /><span class="pixmap-marker-tag">${escapeHtml(u.username)}${u.bubble ? ' • ' + escapeHtml(u.bubble) : ''}</span><span class="pixmap-marker-meta">${escapeHtml(formatFreshness(u.at, u.mode))}</span></div>`;
-            const ex = store.get(u.id);
-            if (ex) { glideMarker(ex, u.lat, u.lng); if (ex._html !== html) { ex.setIcon(L.divIcon({ className: '', iconSize: [0, 0], html })); ex._html = html; } }
-            else {
-                const marker = L.marker([u.lat, u.lng], { icon: L.divIcon({ className: '', iconSize: [0, 0], html }) }).addTo(map); marker._html = html;
-                if (isModal && u.id !== me?.id) marker.bindPopup(`<div class="text-xs font-sans"><strong>${escapeHtml(u.username)}</strong><br><button onclick="sendMapWave('${escapeHtml(u.id)}')" class="mt-1 px-2 py-1 rounded bg-purple-600 text-white font-bold">Wave 👋</button></div>`);
-                store.set(u.id, marker);
-            }
-        });
-        map.invalidateSize();
-        if (refit && users.length === 1) map.setView([users[0].lat, users[0].lng], 12);
-        else if (refit && users.length > 1) map.fitBounds(users.map(u => [u.lat, u.lng]), { padding: [24, 24], maxZoom: 14 });
-    });
+    const syncLayer = (map, store) => {
+        if (!map) return; const keep = new Set();
+        visible.forEach(x => { keep.add(x.userId); const icon = makePixmapIcon(x); if (store.has(x.userId)) { store.get(x.userId).setLatLng([x.lat, x.lng]).setIcon(icon); } else store.set(x.userId, L.marker([x.lat, x.lng], { icon }).addTo(map)); });
+        Array.from(store.keys()).forEach(k => { if (!keep.has(k)) { map.removeLayer(store.get(k)); store.delete(k); } });
+        if (visible.length) map.setView([visible[0].lat, visible[0].lng], map.getZoom() || 13, { animate: true });
+    };
+    amoMap = ensureLeafletMap('amo-free-map', amoMap); syncLayer(amoMap, pixmapMarkerByUid);
+    if ($('amo-map-modal')?.classList.contains('flex')) { amoMapModal = ensureLeafletMap('amo-free-map-modal', amoMapModal); syncLayer(amoMapModal, pixmapModalMarkerByUid); }
 }
+window.waveAtFriend = (toId) => { if (!me) return; broadcastRoomEvent('map_wave', { fromId: me.id, fromName: me.username, toId }); showToast('Waved on Friend Radar!', 'success'); };
+window.openAmoMapModal = () => { updateLocPrivacyUI(); $('amo-map-modal').classList.remove('hidden'); $('amo-map-modal').classList.add('flex'); amoMapModal = ensureLeafletMap('amo-free-map-modal', amoMapModal); renderAllActivePixmapsOnMap(); };
+window.closeAmoMapModal = () => { $('amo-map-modal').classList.add('hidden'); $('amo-map-modal').classList.remove('flex'); };
 
-async function trackMyPresenceLocation() {
-    if (!presenceChannel || !me) return;
-    const meta = { at: Date.now(), mood: myMood, locMode: locPrivacyMode, bubble: mapStatusBubble };
-    if (locPrivacyMode !== 'ghost' && myCoords.lat !== 20) Object.assign(meta, { lat: locPrivacyMode === 'precise' ? myCoords.lat : roundCoord(myCoords.lat), lng: locPrivacyMode === 'precise' ? myCoords.lng : roundCoord(myCoords.lng), pixmapIdx: amoPixmapIdx, customUrl: customPixmap ? customGridToDataUrl(customPixmap) : null });
-    try { await presenceChannel.track(meta); } catch (_) {}
-    syncActiveUserLocationsFromPresence(presenceChannel.presenceState()); renderAllActivePixmapsOnMap();
+// --- WEBRTC CALL STUDIO, VOICE/CAM FX & SOUNDBOARD ---
+const isFresh = (c) => !c?.created_at || (Date.now() - new Date(c.created_at).getTime()) < 120000;
+function setCallBanner(show) { const b = $('active-call-banner'); if (b) b.classList.toggle('hidden', !show); }
+function openCallModal() { if (!activeCall) return; $('call-modal').classList.remove('hidden'); $('call-modal').classList.add('flex'); setCallBanner(false); }
+function minimizeCallModal() { if (!activeCall) return; $('call-modal').classList.add('hidden'); $('call-modal').classList.remove('flex'); setCallBanner(true); }
+function startCallTimer() { stopCallTimer(); callSeconds = 0; $('call-timer-display').textContent = '00:00'; callTimerInterval = setInterval(() => { callSeconds++; const t = formatDuration(callSeconds); $('call-timer-display').textContent = t; if ($('banner-call-timer')) $('banner-call-timer').textContent = t; }, 1000); }
+function stopCallTimer() { if (callTimerInterval) { clearInterval(callTimerInterval); callTimerInterval = null; } }
+function startCallMeter() {
+    stopCallMeter(); const bars = Array.from(document.querySelectorAll('#call-eq-bars .eq-bar')), av = $('call-pulse-avatar');
+    let analyser = null, data = null;
+    if (audioMixer?.ctx && audioMixer.input) { try { analyser = audioMixer.ctx.createAnalyser(); analyser.fftSize = 32; data = new Uint8Array(analyser.frequencyBinCount); audioMixer.input.connect(analyser); } catch (_) {} }
+    const tick = () => {
+        let lvl = 0.15;
+        if (analyser && data && !isMicMuted) { analyser.getByteFrequencyData(data); lvl = Math.min(1, data.reduce((a, b) => a + b, 0) / (data.length * 110)); }
+        else if (!isMicMuted && callAccepted) lvl = 0.12 + Math.random() * 0.25;
+        bars.forEach((b, i) => { b.style.height = `${Math.max(20, Math.min(100, Math.round((lvl * 100) * (0.65 + ((i + 1) % 3) * 0.2))))}%`; });
+        if (av) av.style.boxShadow = `0 0 ${12 + Math.round(lvl * 34)}px var(--accent-glow)`;
+        eqRaf = requestAnimationFrame(tick);
+    };
+    eqRaf = requestAnimationFrame(tick);
 }
-function startGeolocationWatch() {
-    if (locPrivacyMode === 'ghost' || !navigator.geolocation || geoWatchId !== null) return;
-    geoWatchId = navigator.geolocation.watchPosition(
-        (pos) => { myCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; const k = locPrivacyMode === 'precise' ? `${myCoords.lat.toFixed(5)},${myCoords.lng.toFixed(5)}` : `${roundCoord(myCoords.lat)},${roundCoord(myCoords.lng)}`; if (k !== lastSentKey) { lastSentKey = k; trackMyPresenceLocation(); } },
-        (err) => { if (err.code === 1) setLocPrivacyMode('ghost'); },
-        { enableHighAccuracy: locPrivacyMode === 'precise', maximumAge: locPrivacyMode === 'precise' ? 3000 : 60000, timeout: 20000 }
-    );
+function stopCallMeter() { if (eqRaf) { cancelAnimationFrame(eqRaf); eqRaf = null; } }
+
+function setupAudioGraph(rawStream) {
+    teardownAudioGraph();
+    const Ctx = window.AudioContext || window.webkitAudioContext, ctx = new Ctx(), src = ctx.createMediaStreamSource(rawStream), dst = ctx.createMediaStreamDestination();
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 85;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 12000;
+    const comp = ctx.createDynamicsCompressor();
+    const shaper = ctx.createWaveShaper(), makeCurve = (amt) => { const n = 256, c = new Float32Array(n), k = amt * 120; for (let i = 0; i < n; i++) { const x = (i * 2) / n - 1; c[i] = k ? ((3 + k) * x * 20 * (Math.PI / 180)) / (Math.PI + k * Math.abs(x)) : x; } return c; };
+    shaper.curve = makeCurve(0);
+    const delay = ctx.createDelay(1.0); delay.delayTime.value = 0;
+    const fb = ctx.createGain(); fb.gain.value = 0;
+    const dry = ctx.createGain(), wet = ctx.createGain(); wet.gain.value = 0;
+    const sbGain = ctx.createGain(), monGain = ctx.createGain(); monGain.gain.value = 0;
+    src.connect(hp); hp.connect(lp); lp.connect(comp); comp.connect(shaper); shaper.connect(dry); dry.connect(dst);
+    shaper.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(dst);
+    sbGain.connect(dst); sbGain.connect(ctx.destination); dst.connect(monGain); monGain.connect(ctx.destination);
+    audioMixer = { ctx, input: src, hp, lp, comp, shaper, makeCurve, delay, fb, dry, wet, sbGain, monGain, dst, pitchTimer: null };
+    applyVoiceFxSettings(); return dst.stream;
 }
-function updateLocUi() {
-    const lbl = locPrivacyMode === 'ghost' ? 'Ghost Mode' : locPrivacyMode === 'approx' ? 'Approx (~1 km)' : 'Live Precise';
-    if ($('amo-privacy-label')) $('amo-privacy-label').textContent = lbl;
-    const b = $('bump-amo-btn');
-    if (b) { b.textContent = locPrivacyMode === 'ghost' ? 'Ghost' : locPrivacyMode === 'approx' ? '~1km' : 'Live'; b.classList.toggle('ring-2', locPrivacyMode !== 'ghost'); b.classList.toggle('ring-emerald-400', locPrivacyMode !== 'ghost'); }
-    document.querySelectorAll('.loc-mode-btn').forEach(el => { const on = el.dataset.locbtn === locPrivacyMode; el.classList.toggle('bg-pixie-600', on); el.classList.toggle('text-white', on); });
+function teardownAudioGraph() { if (audioMixer?.pitchTimer) clearInterval(audioMixer.pitchTimer); try { audioMixer?.ctx?.close(); } catch (_) {} audioMixer = null; }
+function applyVoiceFxSettings() {
+    if (!audioMixer) return; const { ctx, input, hp, lp, shaper, makeCurve, delay, fb, dry, wet, monGain } = audioMixer;
+    if (audioMixer.pitchTimer) { clearInterval(audioMixer.pitchTimer); audioMixer.pitchTimer = null; }
+    hp.frequency.value = crispMicOn ? 150 : 85; lp.frequency.value = crispMicOn ? 6500 : 12000;
+    shaper.curve = makeCurve(0); delay.delayTime.value = 0; fb.gain.value = 0; wet.gain.value = 0; dry.gain.value = 1;
+    monGain.gain.value = monitorSelfOn ? 0.45 : 0; $('custom-voice-sliders')?.classList.toggle('hidden', voiceFxMode !== 'custom');
+    try { input.disconnect(); } catch (_) {} input.connect(hp);
+    if (voiceFxMode === 'hacker') { hp.frequency.value = 350; lp.frequency.value = 2600; shaper.curve = makeCurve(0.28); delay.delayTime.value = 0.08; fb.gain.value = 0.25; wet.gain.value = 0.22; }
+    else if (voiceFxMode === 'radio') { hp.frequency.value = 420; lp.frequency.value = 2900; shaper.curve = makeCurve(0.35); wet.gain.value = 0.1; }
+    else if (voiceFxMode === 'demon') { const osc = ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = 55; const g = ctx.createGain(); g.gain.value = 0.4; osc.connect(g.gain); osc.start(); shaper.curve = makeCurve(0.5); delay.delayTime.value = 0.14; fb.gain.value = 0.35; wet.gain.value = 0.35; }
+    else if (voiceFxMode === '8bit') { hp.frequency.value = 500; lp.frequency.value = 3400; shaper.curve = makeCurve(0.75); }
+    else if (voiceFxMode === 'stadium') { delay.delayTime.value = 0.26; fb.gain.value = 0.45; wet.gain.value = 0.55; }
+    else if (voiceFxMode === 'alien') { const lfo = ctx.createOscillator(); lfo.frequency.value = 6.5; const d = ctx.createGain(); d.gain.value = 0.008; lfo.connect(d); d.connect(delay.delayTime); lfo.start(); delay.delayTime.value = 0.015; fb.gain.value = 0.4; wet.gain.value = 0.45; }
+    else if (voiceFxMode === 'helium') { delay.delayTime.value = 0.025; wet.gain.value = 0.25; }
+    else if (voiceFxMode === 'custom') { const echo = Number($('vfx-echo')?.value || 0), grit = Number($('vfx-grit')?.value || 0); shaper.curve = makeCurve(grit); delay.delayTime.value = 0.18; fb.gain.value = Math.min(0.7, echo * 0.6); wet.gain.value = echo; }
 }
-window.setLocPrivacyMode = async (mode) => {
-    if (geoWatchId !== null) { navigator.geolocation.clearWatch(geoWatchId); geoWatchId = null; }
-    locPrivacyMode = mode; lsSet('px_loc_mode', mode); lastSentKey = ''; lastFitKey = ''; updateLocUi();
-    if (mode === 'ghost') { await trackMyPresenceLocation(); return showToast('Ghost Mode enabled (location hidden).', 'info'); }
-    if (!navigator.geolocation) return showToast('Geolocation unsupported.', 'error');
-    navigator.geolocation.getCurrentPosition(
-        async (pos) => { myCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude }; startGeolocationWatch(); await trackMyPresenceLocation(); showToast(mode === 'precise' ? 'Live Precise GPS active!' : 'Sharing approx (~1 km) location.', 'success'); },
-        () => { setLocPrivacyMode('ghost'); showToast('Location permission denied.', 'error'); },
-        { enableHighAccuracy: mode === 'precise', timeout: 15000 }
-    );
+window.setVoiceFx = (m) => { voiceFxMode = m; applyVoiceFxSettings(); };
+window.toggleCrispMic = () => { crispMicOn = !crispMicOn; $('btn-crisp-mic')?.classList.toggle('bg-pixie-600', crispMicOn); applyVoiceFxSettings(); };
+window.toggleMonitorSelf = () => { monitorSelfOn = !monitorSelfOn; $('btn-monitor-self')?.classList.toggle('bg-pixie-600', monitorSelfOn); applyVoiceFxSettings(); };
+window.playSoundboardPad = (pad) => {
+    unlockAudioContext();
+    const ctx = audioMixer?.ctx || new (window.AudioContext || window.webkitAudioContext)(), dest = audioMixer?.sbGain || ctx.destination, now = ctx.currentTime;
+    const tone = (f1, f2, dur, type = 'sawtooth') => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f1, now); if (f2) o.frequency.exponentialRampToValueAtTime(f2, now + dur); g.gain.setValueAtTime(0.25, now); g.gain.exponentialRampToValueAtTime(0.001, now + dur); o.connect(g); g.connect(dest); o.start(now); o.stop(now + dur); };
+    if (pad === 'airhorn') { tone(440, 466, 0.35, 'sawtooth'); setTimeout(() => tone(554, 587, 0.45, 'sawtooth'), 120); }
+    else if (pad === 'boom') tone(140, 32, 0.55, 'sine');
+    else if (pad === 'bruh') tone(220, 110, 0.35, 'triangle');
+    else if (pad === 'trombone') [311, 293, 277, 261].forEach((f, i) => setTimeout(() => tone(f, f * 0.96, 0.25, 'sawtooth'), i * 240));
+    else if (pad === 'rimshot') { tone(190, 90, 0.08, 'triangle'); setTimeout(() => tone(260, 120, 0.14, 'square'), 110); }
+    else if (pad === 'laser') tone(1200, 140, 0.22, 'sawtooth');
 };
-window.cycleLocPrivacyMode = () => { const order = ['ghost', 'approx', 'precise']; setLocPrivacyMode(order[(order.indexOf(locPrivacyMode) + 1) % 3]); };
-window.setMapStatusBubble = (v) => { mapStatusBubble = v; lsSet('px_map_bubble', v); trackMyPresenceLocation(); };
-window.cycleAmoPixmap = () => { amoPixmapIdx = (amoPixmapIdx + 1) % AMO_PIXMAPS.length; renderAmoPixmap(); const c = $('amo-pixmap-canvas'); if (c) { c.classList.remove('bump-anim'); void c.offsetWidth; c.classList.add('bump-anim'); } trackMyPresenceLocation(); };
-window.openAmoMapModal = () => { const m = $('amo-map-modal'); if (!m) return; m.classList.remove('hidden'); m.classList.add('flex'); initFreeLeafletMaps(); updateLocUi(); setTimeout(() => { modalMap?.invalidateSize(); lastFitKey = ''; renderAllActivePixmapsOnMap(); }, 60); };
-window.closeAmoMapModal = () => { const m = $('amo-map-modal'); if (m) { m.classList.add('hidden'); m.classList.remove('flex'); } };
 
-async function boot() {
-    const activeTheme = THEMES.find(t => t.id === (document.documentElement.dataset.theme || 'carbon')) || THEMES[0];
-    initWallpaperCanvas(activeTheme);
-    populateEmojiGrid();
-    $('friend-search-input')?.addEventListener('input', renderUsersLists);
-    if ($('map-bubble-select')) $('map-bubble-select').value = mapStatusBubble;
-    if ($('ambience-volume')) $('ambience-volume').value = String(ambienceState.vol);
-    updateLocUi(); renderAmoPixmap(); initFreeLeafletMaps();
-    if (!sb) { $('auth-config-banner').classList.remove('hidden'); return; }
-    sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT' && me) setTimeout(teardownSession, 0); });
-    const { data } = await sb.auth.getSession();
-    if (data?.session?.user) await enterApp(data.session.user);
+function stopCamFxPipeline() { if (camFxTimer) { clearInterval(camFxTimer); camFxTimer = null; } if (rawCamStream) { rawCamStream.getTracks().forEach(t => t.stop()); rawCamStream = null; } }
+function wrapVideoWithCamFx(videoTrack) {
+    if (!camFxMode || camFxMode === 'normal') return videoTrack;
+    const raw = new MediaStream([videoTrack]), vid = document.createElement('video'); vid.srcObject = raw; vid.muted = true; vid.playsInline = true; vid.play().catch(() => {});
+    const canvas = document.createElement('canvas'); canvas.width = 480; canvas.height = 270; const ctx = canvas.getContext('2d');
+    const off = document.createElement('canvas'); off.width = 60; off.height = 34; const octx = off.getContext('2d');
+    camFxTimer = setInterval(() => {
+        if (vid.readyState < 2) return;
+        ctx.save(); ctx.filter = camFxMode === 'cyber' ? 'contrast(1.35) saturate(1.8) hue-rotate(25deg)' : camFxMode === 'vhs' ? 'contrast(1.15) saturate(1.3) sepia(0.2)' : camFxMode === 'noir' ? 'grayscale(1) contrast(1.45)' : 'none';
+        if (camFxMode === 'pixel') { octx.drawImage(vid, 0, 0, off.width, off.height); ctx.imageSmoothingEnabled = false; ctx.drawImage(off, 0, 0, canvas.width, canvas.height); }
+        else ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+    }, 50);
+    return canvas.captureStream(20).getVideoTracks()[0] || videoTrack;
 }
-boot();
+window.setCamFx = async (m) => {
+    camFxMode = m; if (!localStream || !pc) return;
+    const base = rawCamStream?.getVideoTracks()?.[0] || localStream.getVideoTracks()[0]; if (!base) return;
+    if (!rawCamStream) rawCamStream = new MediaStream([base]);
+    const next = wrapVideoWithCamFx(base), sender = pc.getSenders().find(s => s.track?.kind === 'video');
+    if (sender) await sender.replaceTrack(next);
+    localStream.getVideoTracks().forEach(t => { if (t !== base && t !== next) t.stop(); localStream.removeTrack(t); });
+    localStream.addTrack(next); $('local-video').srcObject = new MediaStream([next]);
+};
+window.toggleScreenShare = async () => {
+    if (!pc || !localStream) return showToast('Start a call first.', 'info');
+    const btn = $('btn-screen-share');
+    if (screenTrack) {
+        screenTrack.stop(); screenTrack = null; btn?.classList.remove('bg-pixie-600', 'text-white');
+        const cam = rawCamStream?.getVideoTracks()?.[0]; const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+        if (cam && sender) await sender.replaceTrack(wrapVideoWithCamFx(cam));
+        return;
+    }
+    try {
+        const s = await navigator.mediaDevices.getDisplayMedia({ video: true }); screenTrack = s.getVideoTracks()[0];
+        screenTrack.onended = () => { if (screenTrack) toggleScreenShare(); };
+        const sender = pc.getSenders().find(x => x.track?.kind === 'video'); if (sender) await sender.replaceTrack(screenTrack);
+        $('local-video').srcObject = new MediaStream([screenTrack]); $('local-video-wrapper').classList.remove('hidden'); btn?.classList.add('bg-pixie-600', 'text-white');
+    } catch (_) { showToast('Screen share cancelled.', 'info'); }
+};
+function showCallCaption(txt) { const b = $('call-captions-bar'); if (!b) return; b.textContent = txt; b.classList.remove('hidden'); clearTimeout(b._t); b._t = setTimeout(() => b.classList.add('hidden'), 3200); }
+window.toggleLiveCaptions = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return showToast('Live captions unsupported.', 'error');
+    const btn = $('btn-cc-toggle');
+    if (isCaptionsOn && callCaptionsRec) { callCaptionsRec.stop(); isCaptionsOn = false; btn?.classList.remove('bg-pixie-600', 'text-white'); $('call-captions-bar').classList.add('hidden'); return; }
+    callCaptionsRec = new SR(); callCaptionsRec.continuous = true; callCaptionsRec.interimResults = true;
+    callCaptionsRec.onresult = (ev) => { const txt = Array.from(ev.results).slice(-1)[0]?.[0]?.transcript || ''; if (txt) { showCallCaption(`${me.username}: ${txt}`); if (activeCall) broadcastRoomEvent('call_caption', { callId: activeCall.id, username: me.username, text: txt }); } };
+    callCaptionsRec.start(); isCaptionsOn = true; btn?.classList.add('bg-pixie-600', 'text-white');
+};
+window.sendCallReaction = (emoji) => { spawnCallFloatEmoji(emoji); if (activeCall) broadcastRoomEvent('call_react', { callId: activeCall.id, emoji }); };
+function spawnCallFloatEmoji(emoji) { const st = $('call-stage-area'); if (!st) return; const el = document.createElement('div'); el.className = 'call-float-emoji'; el.textContent = emoji; el.style.left = `${15 + Math.random() * 70}%`; st.appendChild(el); setTimeout(() => el.remove(), 1850); }
+window.toggleCallMiniGame = (force) => { callMiniGameOpen = typeof force === 'boolean' ? force : !callMiniGameOpen; $('call-minigame-overlay')?.classList.toggle('hidden', !callMiniGameOpen); if (callMiniGameOpen) renderCallMiniGame(); };
+function renderCallMiniGame() {
+    const b = $('call-minigame-body'); if (!b) return; const board = callGameState.board || Array(9).fill('');
+    b.innerHTML = `<div class="text-[10px] font-mono text-pixie-300">Turn: ${escapeHtml(callGameState.turn)}</div><div class="grid grid-cols-3 gap-1 w-fit mx-auto">${board.map((v, i) => `<button type="button" onclick="window._callTtt(${i})" class="w-9 h-9 rounded bg-carbon-950 border border-white/15 font-mono font-bold text-xs text-white">${escapeHtml(v || '·')}</button>`).join('')}</div><button type="button" onclick="window._callTttReset()" class="w-full py-1 rounded bg-white/10 text-[10px] font-mono text-slate-200">Reset</button>`;
+}
+
+async function acquireMedia(callType) {
+    const wantVideo = callType === 'video';
+    try {
+        const raw = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: wantVideo ? { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' } : false });
+        const mixedStream = setupAudioGraph(raw), out = new MediaStream();
+        mixedStream.getAudioTracks().forEach(t => out.addTrack(t));
+        raw.getVideoTracks().forEach(t => { rawCamStream = new MediaStream([t]); out.addTrack(wrapVideoWithCamFx(t)); });
+        localStream = out; isMicMuted = false; isCamOff = !wantVideo; updateMediaButtonsUI();
+        if (wantVideo && localStream.getVideoTracks().length) { $('local-video').srcObject = localStream; $('local-video-wrapper').classList.remove('hidden'); }
+        else { $('local-video').srcObject = null; $('local-video-wrapper').classList.add('hidden'); }
+        $('call-media-note').textContent = wantVideo ? 'Camera + Mic active with live FX.' : 'Microphone active with live FX.';
+        return localStream;
+    } catch (_) {
+        try {
+            const raw = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            const mixedStream = setupAudioGraph(raw), out = new MediaStream();
+            mixedStream.getAudioTracks().forEach(t => out.addTrack(t));
+            localStream = out; isMicMuted = false; isCamOff = true; updateMediaButtonsUI();
+            $('local-video-wrapper').classList.add('hidden'); $('call-media-note').textContent = 'Audio-only fallback (camera unavailable).';
+            return localStream;
+        } catch (err) { startSimulatedLoopback(wantVideo); throw err; }
+    }
+}
+function startSimulatedLoopback(wantVideo) {
+    stopSimulatedLoopback(); $('call-media-note').textContent = 'Simulated media mode — no microphone/camera detected.';
+    try {
+        const Ctx = window.AudioContext || window.webkitAudioContext; simAudioCtx = new Ctx();
+        const osc = simAudioCtx.createOscillator(), gain = simAudioCtx.createGain(), dst = simAudioCtx.createMediaStreamDestination();
+        osc.type = 'sine'; osc.frequency.value = 440; gain.gain.value = 0.015; osc.connect(gain); gain.connect(dst); osc.start();
+        localStream = dst.stream; isMicMuted = false; isCamOff = !wantVideo; updateMediaButtonsUI();
+    } catch (_) { localStream = new MediaStream(); }
+    if (wantVideo) {
+        const c = document.createElement('canvas'); c.width = 480; c.height = 270; const ctx = c.getContext('2d');
+        if (c.captureStream) {
+            const vt = c.captureStream(15).getVideoTracks()[0]; if (vt) localStream.addTrack(vt);
+            $('local-video').srcObject = localStream; $('local-video-wrapper').classList.remove('hidden');
+            let x = 60, vx = 3;
+            simInterval = setInterval(() => { ctx.fillStyle = '#0E0E13'; ctx.fillRect(0, 0, c.width, c.height); ctx.fillStyle = '#A855F7'; ctx.beginPath(); ctx.arc(x, 135, 28, 0, Math.PI * 2); ctx.fill(); x += vx; if (x < 35 || x > c.width - 35) vx *= -1; }, 60);
+        }
+    }
+}
+function stopSimulatedLoopback() { if (simInterval) { clearInterval(simInterval); simInterval = null; } if (simAudioCtx) { try { simAudioCtx.close(); } catch (_) {} simAudioCtx = null; } }
+function updateMediaButtonsUI() {
+    $('icon-mic-on').classList.toggle('hidden', isMicMuted); $('icon-mic-off').classList.toggle('hidden', !isMicMuted);
+    $('btn-mute-mic').classList.toggle('bg-rose-950/80', isMicMuted); $('btn-mute-mic').classList.toggle('border-rose-500/50', isMicMuted);
+    $('icon-cam-on').classList.toggle('hidden', isCamOff); $('icon-cam-off').classList.toggle('hidden', !isCamOff);
+    $('btn-toggle-cam').classList.toggle('bg-rose-950/80', isCamOff); $('btn-toggle-cam').classList.toggle('border-rose-500/50', isCamOff);
+}
+window.toggleMuteMic = () => { if (!localStream) return; isMicMuted = !isMicMuted; localStream.getAudioTracks().forEach(t => { t.enabled = !isMicMuted; }); updateMediaButtonsUI(); };
+window.toggleCamera = async () => {
+    if (!localStream) return; let vt = localStream.getVideoTracks()[0];
+    if (!vt && sb) {
+        try {
+            const vs = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false });
+            const rawV = vs.getVideoTracks()[0]; rawCamStream = new MediaStream([rawV]); vt = wrapVideoWithCamFx(rawV); localStream.addTrack(vt);
+            if (pc) { const s = pc.getSenders().find(x => x.track?.kind === 'video'); if (s) await s.replaceTrack(vt); else pc.addTrack(vt, localStream); if (isCaller && activeCall && callRowReady) { const offer = await pc.createOffer(); await pc.setLocalDescription(offer); await sb.from('calls').update({ offer: JSON.stringify(pc.localDescription) }).eq('id', activeCall.id); } }
+            $('local-video').srcObject = localStream;
+        } catch (_) { return showToast('Could not enable camera.', 'error'); }
+    }
+    if (!vt) return; isCamOff = !isCamOff; vt.enabled = !isCamOff; $('local-video-wrapper').classList.toggle('hidden', isCamOff); updateMediaButtonsUI();
+};
+
+function createPeerConnection(callId) {
+    if (pc) { try { pc.close(); } catch (_) {} pc = null; }
+    pendingIce = []; remoteDescSet = false; pc = new RTCPeerConnection(RTC_CONFIG);
+    if (localStream) localStream.getTracks().forEach(tr => pc.addTrack(tr, localStream));
+    pc.onicecandidate = async (ev) => { if (!ev.candidate) return; if (!callRowReady) pendingIce.push(ev.candidate.toJSON()); else await sendCandidate(callId, ev.candidate.toJSON()); };
+    pc.ontrack = (ev) => {
+        const stream = (ev.streams && ev.streams[0]) || new MediaStream([ev.track]);
+        if (ev.track.kind === 'video') { $('remote-video').srcObject = stream; $('remote-video').classList.remove('hidden'); $('call-avatar-stage').classList.add('hidden'); }
+        else { $('remote-audio').srcObject = stream; $('remote-audio').play().catch(() => {}); }
+    };
+    pc.onconnectionstatechange = () => {
+        if (!activeCall) return;
+        if (pc.connectionState === 'connected') { $('call-status-label').textContent = 'Connected • Encrypted P2P'; $('call-modal-subtitle').textContent = 'Live peer connection active'; }
+        else if (pc.connectionState === 'failed') { $('call-status-label').textContent = 'Connection interrupted'; showToast('Peer connection interrupted.', 'error'); }
+    };
+    return pc;
+}
+async function sendCandidate(callId, cand) {
+    if (!sb || !me) return;
+    const { error } = await sb.from('call_candidates').insert({ call_id: callId, sender_id: me.id, candidate: cand });
+    if (error) console.warn('ICE insert error:', error.message);
+}
+async function flushPendingIce(callId) { const q = pendingIce.splice(0); for (const c of q) await sendCandidate(callId, c); }
+async function addIceSafe(cand) { if (!pc || !cand) return; if (!remoteDescSet) { candQueue.push(cand); return; } try { await pc.addIceCandidate(new RTCIceCandidate(cand)); } catch (_) {} }
+async function drainCandQueue() { const q = candQueue.splice(0); for (const c of q) { try { await pc.addIceCandidate(new RTCIceCandidate(c)); } catch (_) {} } }
+
+window.initiateCall = async (callType) => {
+    if (!sb || !me) return showToast('Sign in first.', 'error');
+    if (activeRoom.type !== 'dm' || !activeRoom.targetUid) return showToast('Select a friend in Direct Messages to start a call.', 'info');
+    if (!canDirect(activeRoom.targetUid)) return showToast('Add them as a friend first.', 'info');
+    if (activeCall || callStarting) return showToast('A call is already in progress.', 'info');
+    const callee = profiles.get(activeRoom.targetUid); if (!callee) return showToast('Recipient profile not found.', 'error');
+    callStarting = true; isCaller = true; callAccepted = false; callRowReady = false; seenCand.clear(); candQueue = [];
+    const callId = crypto.randomUUID();
+    activeCall = { id: callId, room_id: activeRoom.id, caller_id: me.id, callee_id: callee.id, call_type: callType, status: 'ringing' };
+    $('incoming-call-controls').classList.add('hidden'); $('active-call-controls').classList.remove('hidden');
+    $('call-modal-title').textContent = `${callType === 'video' ? 'Video' : 'Voice'} Call — ${callee.username}`;
+    $('call-modal-subtitle').textContent = 'Requesting media devices...'; $('call-peer-name').textContent = callee.username;
+    $('call-pulse-avatar').innerHTML = renderAvatarHtml(callee); $('call-status-label').textContent = 'Requesting permissions...';
+    $('remote-video').classList.add('hidden'); $('call-avatar-stage').classList.remove('hidden'); openCallModal();
+    try {
+        await acquireMedia(callType); const peer = createPeerConnection(callId);
+        $('call-status-label').textContent = 'Calling...'; $('call-modal-subtitle').textContent = `Ringing ${callee.username}...`;
+        const offer = await peer.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: callType === 'video' });
+        await peer.setLocalDescription(offer);
+        const { error } = await sb.from('calls').insert({ id: callId, room_id: activeRoom.id, caller_id: me.id, callee_id: callee.id, call_type: callType, status: 'ringing', offer: JSON.stringify(peer.localDescription) });
+        if (error) throw error;
+        callRowReady = true; await flushPendingIce(callId); startRingtone(false); startCallMeter();
+        ringTimeout = setTimeout(async () => { if (activeCall && activeCall.id === callId && !callAccepted) { showToast(`${callee.username} did not answer.`, 'info'); await endCurrentCall(false, 'Missed call'); } }, 45000);
+    } catch (err) { showToast('Could not start call: ' + errText(err), 'error'); cleanupCallState(); }
+    finally { callStarting = false; }
+};
+function presentIncomingCall(call) {
+    if (!me || activeCall || callStarting) return;
+    activeCall = call; isCaller = false; callAccepted = false; callRowReady = true; seenCand.clear(); candQueue = [];
+    const caller = profiles.get(call.caller_id) || { username: 'Klyxora Member' };
+    $('call-modal-title').textContent = `Incoming ${call.call_type === 'video' ? 'Video' : 'Voice'} Call`;
+    $('call-modal-subtitle').textContent = `${caller.username} is calling you`; $('call-peer-name').textContent = caller.username;
+    $('call-pulse-avatar').innerHTML = renderAvatarHtml(caller); $('call-status-label').textContent = 'Incoming call...';
+    $('remote-video').classList.add('hidden'); $('call-avatar-stage').classList.remove('hidden');
+    $('incoming-call-controls').classList.remove('hidden'); $('active-call-controls').classList.add('hidden');
+    openCallModal(); startRingtone(true);
+    callNotif = notify(`Incoming ${call.call_type} call`, `${caller.username} is calling you on KLYXORA`, { tag: 'call-' + call.id, roomId: call.room_id, callId: call.id, urgent: true });
+}
+window.acceptIncomingCall = async () => {
+    if (!sb || !activeCall || isCaller) return;
+    const call = activeCall; stopRingtone(); if (callNotif) { callNotif.then(n => n?.close?.()); callNotif = null; }
+    $('incoming-call-controls').classList.add('hidden'); $('active-call-controls').classList.remove('hidden'); $('call-status-label').textContent = 'Connecting...';
+    try {
+        await acquireMedia(call.call_type); const peer = createPeerConnection(call.id);
+        if (!call.offer) throw new Error('Missing call offer.');
+        await peer.setRemoteDescription(new RTCSessionDescription(JSON.parse(call.offer))); remoteDescSet = true; await drainCandQueue();
+        const answer = await peer.createAnswer(); await peer.setLocalDescription(answer);
+        const { error } = await sb.from('calls').update({ status: 'accepted', answer: JSON.stringify(peer.localDescription) }).eq('id', call.id);
+        if (error) throw error;
+        callAccepted = true; startCallTimer(); startCallMeter();
+        const { data: existingCands } = await sb.from('call_candidates').select('*').eq('call_id', call.id).neq('sender_id', me.id);
+        for (const row of (existingCands || [])) { if (!seenCand.has(row.id)) { seenCand.add(row.id); await addIceSafe(row.candidate); } }
+    } catch (err) { showToast('Failed to accept call: ' + errText(err), 'error'); await endCurrentCall(false); }
+};
+window.declineIncomingCall = async () => { if (!sb || !activeCall) return; const id = activeCall.id; stopRingtone(); cleanupCallState(); await sb.from('calls').update({ status: 'declined' }).eq('id', id); };
+window.endCurrentCall = async (silent = false, reasonText = null) => {
+    const call = activeCall; if (!call) { cleanupCallState(); return; }
+    const dur = callSeconds; stopRingtone(); cleanupCallState();
+    if (sb && me) {
+        await sb.from('calls').update({ status: 'ended' }).eq('id', call.id);
+        if (!silent) { const label = reasonText || (dur > 0 ? `Call ended (${formatDuration(dur)})` : 'Call ended'); await sb.from('messages').insert({ room_id: call.room_id, sender_name: me.username, text: label, type: 'call_log' }); }
+    }
+};
+function cleanupCallState() {
+    stopRingtone(); stopCallTimer(); stopCallMeter(); stopCamFxPipeline(); teardownAudioGraph(); stopSimulatedLoopback();
+    if (ringTimeout) { clearTimeout(ringTimeout); ringTimeout = null; }
+    if (screenTrack) { try { screenTrack.stop(); } catch (_) {} screenTrack = null; }
+    if (callCaptionsRec) { try { callCaptionsRec.stop(); } catch (_) {} callCaptionsRec = null; }
+    isCaptionsOn = false; callMiniGameOpen = false; $('call-minigame-overlay')?.classList.add('hidden'); $('call-captions-bar')?.classList.add('hidden');
+    if (pc) { try { pc.ontrack = null; pc.onicecandidate = null; pc.close(); } catch (_) {} pc = null; }
+    if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+    $('local-video').srcObject = null; $('remote-video').srcObject = null; $('remote-audio').srcObject = null;
+    $('local-video-wrapper').classList.add('hidden'); $('remote-video').classList.add('hidden'); $('call-avatar-stage').classList.remove('hidden');
+    $('call-modal').classList.add('hidden'); $('call-modal').classList.remove('flex'); setCallBanner(false);
+    activeCall = null; isCaller = false; callAccepted = false; remoteDescSet = false; callRowReady = false; pendingIce = []; candQueue = []; seenCand.clear(); isMicMuted = false; isCamOff = false;
+}
+function onCallInsert(call) { if (!me || !call || call.status !== 'ringing') return; if (call.callee_id === me.id && call.caller_id !== me.id && !activeCall && isFresh(call)) presentIncomingCall(call); }
+async function onCallUpdate(call) {
+    if (!me || !call || !activeCall || call.id !== activeCall.id) return;
+    if (call.status === 'accepted' && isCaller && !callAccepted && call.answer) {
+        callAccepted = true; stopRingtone(); if (ringTimeout) { clearTimeout(ringTimeout); ringTimeout = null; }
+        $('call-status-label').textContent = 'Connecting media...'; startCallTimer(); startCallMeter();
+        try { if (pc && !pc.currentRemoteDescription) { await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(call.answer))); remoteDescSet = true; await drainCandQueue(); } }
+        catch (err) { showToast('Error completing call connection: ' + errText(err), 'error'); }
+    } else if (['ended', 'declined', 'missed'].includes(call.status)) {
+        const wasCaller = isCaller; cleanupCallState();
+        if (!silentDecline(call.status, wasCaller)) showToast(call.status === 'declined' ? 'Call was declined.' : 'Call ended.', 'info');
+    }
+}
+const silentDecline = (st, wasC) => st === 'declined' && !wasC;
+async function onCandidateInsert(row) { if (!me || !row || !activeCall || row.call_id !== activeCall.id || row.sender_id === me.id || seenCand.has(row.id)) return; seenCand.add(row.id); await addIceSafe(row.candidate); }
+async function checkPendingCalls() {
+    if (!sb || !me || activeCall) return;
+    const { data } = await sb.from('calls').select('*').eq('callee_id', me.id).eq('status', 'ringing').order('created_at', { ascending: false }).limit(1);
+    if (data && data.length && data[0].caller_id !== me.id && isFresh(data[0])) presentIncomingCall(data[0]);
+}
+
+// --- MODERATION VAULT ---
+let vaultTab = 'users', vaultSearch = '', vaultLogs = [], vaultBusy = false;
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtDt = (d) => { if (!d) return '—'; const dt = new Date(d); return Number.isNaN(dt.getTime()) ? String(d) : dt.toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }); };
+const badge = (txt, cls) => `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase border ${cls}">${esc(txt)}</span>`;
+const roleBadge = (r) => r === 'admin' ? badge('admin', 'bg-amber-500/15 text-amber-300 border-amber-500/40') : r === 'mod' ? badge('mod', 'bg-sky-500/15 text-sky-300 border-sky-500/40') : badge('member', 'bg-white/5 text-slate-400 border-white/10');
+function ensureVaultModal() {
+    if ($('stealth-vault-modal')) return;
+    $('vault-overlay-mount').innerHTML = `<div id="stealth-vault-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-5"><div class="carbon-surface modal-card-anim w-full max-w-5xl rounded-3xl border border-pixie-500/40 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"><div class="px-5 py-4 border-b border-pixie-800/40 flex items-center justify-between gap-3 bg-carbon-900/90"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/40 flex items-center justify-center text-amber-300 font-mono font-bold text-xs">MOD</div><div><h3 class="text-base font-bold text-white">Klyxora Moderation Console</h3><p id="vault-subtitle" class="text-[11px] font-mono text-pixie-300">Member directory, bans &amp; audit trail</p></div></div><button type="button" id="vault-close-btn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">✕</button></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 px-5 pt-4"><div class="carbon-card rounded-2xl p-3"><div class="text-[10px] font-mono uppercase text-slate-400">Accounts</div><div id="vault-stat-users" class="text-lg font-extrabold text-white font-mono mt-0.5">0</div></div><div class="carbon-card rounded-2xl p-3"><div class="text-[10px] font-mono uppercase text-slate-400">Online Now</div><div id="vault-stat-online" class="text-lg font-extrabold text-emerald-400 font-mono mt-0.5">0</div></div><div class="carbon-card rounded-2xl p-3"><div class="text-[10px] font-mono uppercase text-slate-400">Suspended</div><div id="vault-stat-banned" class="text-lg font-extrabold text-rose-400 font-mono mt-0.5">0</div></div><div class="carbon-card rounded-2xl p-3"><div class="text-[10px] font-mono uppercase text-slate-400">Logged Msg</div><div id="vault-stat-msgs" class="text-lg font-extrabold text-pixie-300 font-mono mt-0.5">0</div></div></div><div class="px-5 pt-4 flex flex-wrap items-center justify-between gap-2"><div class="flex items-center gap-1.5 bg-carbon-950 p-1 rounded-2xl border border-pixie-800/40"><button type="button" data-vtab="users" class="vtab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold">Members</button><button type="button" data-vtab="audit" class="vtab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold">Audit Log</button></div><div class="flex items-center gap-2 flex-1 sm:flex-initial justify-end"><input id="vault-search-input" type="search" placeholder="Filter by username, role, or action..." class="w-full sm:w-64 bg-carbon-950 border border-pixie-700/40 rounded-xl px-3.5 py-1.5 text-xs text-white focus:outline-none"><button type="button" id="vault-refresh-btn" class="px-3 py-1.5 rounded-xl bg-carbon-800 hover:bg-pixie-700/50 text-xs font-semibold text-slate-200 border border-white/10">Refresh</button></div></div><div id="vault-body" class="flex-1 overflow-y-auto p-5 space-y-2.5"></div><div class="px-5 py-3 border-t border-pixie-800/40 bg-carbon-900/90 flex items-center justify-between text-[11px] font-mono text-slate-400"><span id="vault-status-msg">Ready</span><span>Shortcut: Ctrl+Shift+M</span></div></div></div>`;
+    $('vault-close-btn').onclick = () => closeVaultModal();
+    $('vault-refresh-btn').onclick = () => refreshVaultData(true);
+    $('vault-search-input').oninput = (e) => { vaultSearch = e.target.value.trim().toLowerCase(); renderVaultRows(); };
+    $('stealth-vault-modal').onclick = (e) => { if (e.target === $('stealth-vault-modal')) closeVaultModal(); };
+    document.querySelectorAll('.vtab-btn').forEach(b => { b.onclick = () => { vaultTab = b.dataset.vtab; paintVaultTabs(); if (vaultTab === 'audit' && !vaultLogs.length) refreshVaultData(false); else renderVaultRows(); }; });
+    $('vault-body').onclick = onVaultClick;
+}
+function paintVaultTabs() { document.querySelectorAll('.vtab-btn').forEach(b => { const on = b.dataset.vtab === vaultTab; b.className = `vtab-btn px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${on ? 'bg-gradient-to-r from-pixie-700 to-pixie-600 text-white shadow' : 'text-slate-400 hover:text-white'}`; }); }
+function updateVaultStats() {
+    if (!$('vault-stat-users')) return; const all = Array.from(profiles.values());
+    $('vault-stat-users').textContent = String(all.length); $('vault-stat-online').textContent = String(all.filter(u => !u.banned && (u.id === me?.id || onlineIds.has(u.id))).length);
+    $('vault-stat-banned').textContent = String(all.filter(u => !!u.banned).length); $('vault-stat-msgs').textContent = String(Array.from(adminCounts.values()).reduce((a, b) => a + b, 0));
+}
+async function loadAdminCounts() {
+    if (!sb) return; const { data, error } = await sb.rpc('admin_message_counts'); if (error || !Array.isArray(data)) return;
+    adminCounts = new Map(data.map(r => [r.sender_id, Number(r.msg_count) || 0])); updateVaultStats();
+}
+async function refreshVaultData(notifyUser = false) {
+    if (!sb || !me || me.role !== 'admin' || vaultBusy) return; vaultBusy = true;
+    if ($('vault-status-msg')) $('vault-status-msg').textContent = 'Syncing...';
+    try {
+        await Promise.all([loadProfiles(), loadAdminCounts()]);
+        const { data: logs, error } = await sb.from('moderation_logs').select('*').order('created_at', { ascending: false }).limit(80);
+        if (!error && Array.isArray(logs)) vaultLogs = logs;
+        renderVaultRows(); if ($('vault-status-msg')) $('vault-status-msg').textContent = `Synced at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+        if (notifyUser) showToast('Moderation data refreshed.', 'info');
+    } finally { vaultBusy = false; }
+}
+function renderVaultRows() {
+    const body = $('vault-body'); if (!body || !me) return; updateVaultStats();
+    if (vaultTab === 'audit') {
+        const rows = vaultLogs.filter(l => !vaultSearch || `${l.action} ${l.target_username} ${l.reason} ${l.actor_id}`.toLowerCase().includes(vaultSearch));
+        body.innerHTML = rows.length ? rows.map(l => `<div class="carbon-card rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"><div class="space-y-1 min-w-0"><div class="flex flex-wrap items-center gap-2">${badge(l.action || 'event', 'bg-pixie-500/15 text-pixie-300 border-pixie-500/40')}<span class="font-bold text-white">${esc(l.target_username || l.target_user_id || '—')}</span><span class="text-[10px] font-mono text-slate-500">${esc(fmtDt(l.created_at))}</span></div><div class="text-slate-300 break-words">${esc(l.reason || 'No details')}</div></div><div class="text-[10px] font-mono text-slate-500 shrink-0">actor: ${esc(String(l.actor_id || '').slice(0, 8))}</div></div>`).join('') : '<div class="py-10 text-center text-xs font-mono text-slate-500">No audit entries match.</div>';
+        return;
+    }
+    const users = Array.from(profiles.values()).filter(u => { if (!vaultSearch) return true; return `${u.username || ''} ${u.status || ''} ${u.role || ''} ${u.id || ''}`.toLowerCase().includes(vaultSearch); }).sort((a, b) => (Number(!!b.banned) - Number(!!a.banned)) || (a.username || '').localeCompare(b.username || ''));
+    body.innerHTML = users.length ? users.map(u => {
+        const isSelf = u.id === me.id, isOn = !u.banned && (isSelf || onlineIds.has(u.id)), count = adminCounts.get(u.id) ?? '—', uid = esc(u.id), uname = esc(u.username || 'Member');
+        const banBtn = isSelf ? '' : u.banned ? `<button type="button" data-vact="unban" data-uid="${uid}" data-uname="${uname}" class="px-3 py-1.5 rounded-xl bg-emerald-600/80 hover:bg-emerald-500 text-white text-xs font-bold">Unban</button>` : `<button type="button" data-vact="ban" data-uid="${uid}" data-uname="${uname}" class="px-3 py-1.5 rounded-xl bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-bold">Ban</button>`;
+        const purgeBtn = `<button type="button" data-vact="purge" data-uid="${uid}" data-uname="${uname}" class="px-3 py-1.5 rounded-xl bg-carbon-800 hover:bg-amber-600/40 text-amber-300 text-xs font-semibold border border-amber-500/30">Purge Msgs</button>`;
+        return `<div class="carbon-card rounded-2xl p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3"><div class="flex items-center gap-3 min-w-0"><div class="w-10 h-10 rounded-xl bg-pixie-900 flex items-center justify-center text-xs font-bold text-white relative shrink-0 overflow-hidden">${renderAvatarHtml(u)}<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ${statusColor(u, isOn)} border-2 border-carbon-950"></span></div><div class="min-w-0"><div class="flex flex-wrap items-center gap-1.5"><span class="font-bold text-sm text-white truncate">${uname}</span>${roleBadge(u.role)}${u.banned ? badge('suspended', 'bg-rose-500/20 text-rose-300 border-rose-500/40') : ''}${isSelf ? badge('you', 'bg-pixie-500/20 text-pixie-200 border-pixie-500/40') : ''}</div><div class="text-xs text-slate-400 truncate mt-0.5">${esc(u.status || 'No status')}</div><div class="text-[10px] font-mono text-slate-500 mt-0.5">msgs: ${esc(count)} • joined ${esc(fmtDt(u.created_at))}${u.banned && u.ban_reason ? ` • reason: ${esc(u.ban_reason)}` : ''}</div></div></div><div class="flex items-center gap-2 shrink-0 self-end md:self-center">${banBtn}${purgeBtn}</div></div>`;
+    }).join('') : '<div class="py-10 text-center text-xs font-mono text-slate-500">No matching members.</div>';
+}
+async function onVaultClick(e) {
+    const btn = e.target.closest('[data-vact]'); if (!btn || !sb || !me || me.role !== 'admin' || vaultBusy) return;
+    const act = btn.dataset.vact, uid = btn.dataset.uid, uname = btn.dataset.uname || 'Member';
+    if (act === 'ban') {
+        const reason = window.prompt(`Reason for suspending ${uname}:`, 'Violated Klyxora community guidelines'); if (reason === null) return;
+        vaultBusy = true;
+        try { const { data, error } = await sb.rpc('admin_set_ban', { p_target: uid, p_banned: true, p_reason: reason.trim() || 'Suspended by administrator' }); if (error) return showToast('Ban failed: ' + errText(error), 'error'); if (data) profiles.set(uid, data); showToast(`${uname} has been suspended.`, 'success'); await refreshVaultData(false); }
+        finally { vaultBusy = false; }
+    } else if (act === 'unban') {
+        vaultBusy = true;
+        try { const { data, error } = await sb.rpc('admin_set_ban', { p_target: uid, p_banned: false, p_reason: '' }); if (error) return showToast('Unban failed: ' + errText(error), 'error'); if (data) profiles.set(uid, data); showToast(`${uname} has been reinstated.`, 'success'); await refreshVaultData(false); }
+        finally { vaultBusy = false; }
+    } else if (act === 'purge') {
+        if (!window.confirm(`Delete all messages sent by ${uname}? This cannot be undone.`)) return;
+        vaultBusy = true;
+        try { const { data, error } = await sb.rpc('admin_purge_messages', { p_target: uid }); if (error) return showToast('Purge failed: ' + errText(error), 'error'); showToast(`Purged ${Number(data) || 0} messages from ${uname}.`, 'success'); if (activeRoom.id) await switchRoom(activeRoom); await refreshVaultData(false); }
+        finally { vaultBusy = false; }
+    }
+}
+window.mountAndOpenVault = () => { if (!me || me.role !== 'admin') return showToast('Administrator access required.', 'error'); ensureVaultModal(); vaultTab = 'users'; paintVaultTabs(); $('stealth-vault-modal').classList.remove('hidden'); $('stealth-vault-modal').classList.add('flex'); $('vault-search-input').value = ''; vaultSearch = ''; renderVaultRows(); refreshVaultData(false); };
+window.closeVaultModal = () => { const m = $('stealth-vault-modal'); if (!m) return; m.classList.add('hidden'); m.classList.remove('flex'); };
+document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'm') { e.preventDefault(); if (me?.role === 'admin') { if ($('stealth-vault-modal')?.classList.contains('flex')) closeVaultModal(); else mountAndOpenVault(); } } });
+
+populateEmojiGrid();
+window.__applyThemeVars(document.documentElement.dataset.theme || 'carbon');
+drawSpriteToCanvas($('amo-pixmap-canvas'), amoPixmapIndex);
+updateLocPrivacyUI();
+setTimeout(() => { amoMap = ensureLeafletMap('amo-free-map', amoMap); }, 180);
+if (!configured) $('auth-config-banner').classList.remove('hidden');
+else sb.auth.getSession().then(({ data }) => { if (data?.session?.user) enterApp(data.session.user); }).catch(() => {});
 </script>
 </body>
 </html>
