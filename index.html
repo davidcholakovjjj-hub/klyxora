@@ -1,1610 +1,2056 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="obsidian-purple">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Klyxora — Next-Gen Social & Real-Time Platform</title>
-<meta name="theme-color" content="#0b0814" />
-
-<!-- Fonts & Icons -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<style>
-  /* ==========================================================================
-     1. 16 BESPOKE APPEARANCE STUDIO THEMESk
-     ========================================================================== */
-  :root, [data-theme="obsidian-purple"] {
-    --bg-base: #090612;
-    --bg-surface: rgba(19, 14, 34, 0.78);
-    --bg-elevated: rgba(29, 22, 51, 0.88);
-    --bg-glass: rgba(255, 255, 255, 0.04);
-    --border-subtle: rgba(168, 85, 247, 0.22);
-    --border-strong: rgba(168, 85, 247, 0.45);
-    --accent: #a855f7;
-    --accent-2: #0adfff;
-    --accent-glow: rgba(168, 85, 247, 0.45);
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --carbon-opacity: 0.22;
-  }
-  [data-theme="cyber-cyan"] {
-    --bg-base: #040d14; --bg-surface: rgba(8, 24, 36, 0.8); --bg-elevated: rgba(13, 38, 56, 0.9);
-    --border-subtle: rgba(10, 223, 255, 0.25); --border-strong: rgba(10, 223, 255, 0.55);
-    --accent: #0adfff; --accent-2: #3b82f6; --accent-glow: rgba(10, 223, 255, 0.45);
-  }
-  [data-theme="carbon-crimson"] {
-    --bg-base: #110508; --bg-surface: rgba(28, 10, 15, 0.82); --bg-elevated: rgba(44, 15, 22, 0.9);
-    --border-subtle: rgba(244, 63, 94, 0.25); --border-strong: rgba(244, 63, 94, 0.55);
-    --accent: #f43f5e; --accent-2: #fb923c; --accent-glow: rgba(244, 63, 94, 0.45);
-  }
-  [data-theme="emerald-matrix"] {
-    --bg-base: #03110b; --bg-surface: rgba(7, 28, 19, 0.82); --bg-elevated: rgba(12, 43, 29, 0.9);
-    --border-subtle: rgba(16, 185, 129, 0.25); --border-strong: rgba(16, 185, 129, 0.55);
-    --accent: #10b981; --accent-2: #a3e635; --accent-glow: rgba(16, 185, 129, 0.45);
-  }
-  [data-theme="solar-gold"] {
-    --bg-base: #120d04; --bg-surface: rgba(30, 22, 8, 0.82); --bg-elevated: rgba(46, 34, 12, 0.9);
-    --border-subtle: rgba(245, 158, 11, 0.28); --border-strong: rgba(245, 158, 11, 0.55);
-    --accent: #f59e0b; --accent-2: #fde047; --accent-glow: rgba(245, 158, 11, 0.45);
-  }
-  [data-theme="midnight-indigo"] {
-    --bg-base: #060818; --bg-surface: rgba(13, 18, 46, 0.82); --bg-elevated: rgba(21, 28, 69, 0.9);
-    --border-subtle: rgba(99, 102, 241, 0.28); --border-strong: rgba(99, 102, 241, 0.55);
-    --accent: #6366f1; --accent-2: #38bdf8; --accent-glow: rgba(99, 102, 241, 0.45);
-  }
-  [data-theme="sakura-neon"] {
-    --bg-base: #140612; --bg-surface: rgba(34, 11, 31, 0.82); --bg-elevated: rgba(51, 17, 46, 0.9);
-    --border-subtle: rgba(236, 72, 153, 0.28); --border-strong: rgba(236, 72, 153, 0.55);
-    --accent: #ec4899; --accent-2: #f472b6; --accent-glow: rgba(236, 72, 153, 0.45);
-  }
-  [data-theme="arctic-frost"] {
-    --bg-base: #071019; --bg-surface: rgba(15, 30, 46, 0.82); --bg-elevated: rgba(23, 45, 68, 0.9);
-    --border-subtle: rgba(56, 189, 248, 0.28); --border-strong: rgba(56, 189, 248, 0.55);
-    --accent: #38bdf8; --accent-2: #e0f2fe; --accent-glow: rgba(56, 189, 248, 0.45);
-  }
-  [data-theme="volcanic-amber"] {
-    --bg-base: #140804; --bg-surface: rgba(33, 14, 7, 0.82); --bg-elevated: rgba(51, 22, 11, 0.9);
-    --border-subtle: rgba(249, 115, 22, 0.28); --border-strong: rgba(249, 115, 22, 0.55);
-    --accent: #f97316; --accent-2: #facc15; --accent-glow: rgba(249, 115, 22, 0.45);
-  }
-  [data-theme="synthwave-84"] {
-    --bg-base: #0f051d; --bg-surface: rgba(26, 10, 48, 0.82); --bg-elevated: rgba(41, 16, 74, 0.9);
-    --border-subtle: rgba(217, 70, 239, 0.28); --border-strong: rgba(10, 223, 255, 0.55);
-    --accent: #d946ef; --accent-2: #0adfff; --accent-glow: rgba(217, 70, 239, 0.5);
-  }
-  [data-theme="stealth-monochrome"] {
-    --bg-base: #09090b; --bg-surface: rgba(20, 20, 23, 0.85); --bg-elevated: rgba(32, 32, 37, 0.92);
-    --border-subtle: rgba(161, 161, 170, 0.22); --border-strong: rgba(244, 244, 245, 0.45);
-    --accent: #e4e4e7; --accent-2: #71717a; --accent-glow: rgba(228, 228, 231, 0.35);
-  }
-  [data-theme="toxic-lime"] {
-    --bg-base: #091104; --bg-surface: rgba(18, 33, 8, 0.82); --bg-elevated: rgba(27, 49, 12, 0.9);
-    --border-subtle: rgba(132, 204, 22, 0.28); --border-strong: rgba(132, 204, 22, 0.55);
-    --accent: #84cc16; --accent-2: #22d3ee; --accent-glow: rgba(132, 204, 22, 0.45);
-  }
-  [data-theme="royal-amethyst"] {
-    --bg-base: #0d0617; --bg-surface: rgba(24, 12, 41, 0.82); --bg-elevated: rgba(38, 19, 64, 0.9);
-    --border-subtle: rgba(139, 92, 246, 0.28); --border-strong: rgba(192, 132, 252, 0.55);
-    --accent: #8b5cf6; --accent-2: #f472b6; --accent-glow: rgba(139, 92, 246, 0.45);
-  }
-  [data-theme="deep-abyss"] {
-    --bg-base: #020813; --bg-surface: rgba(6, 18, 38, 0.84); --bg-elevated: rgba(10, 29, 59, 0.92);
-    --border-subtle: rgba(20, 184, 166, 0.28); --border-strong: rgba(20, 184, 166, 0.55);
-    --accent: #14b8a6; --accent-2: #3b82f6; --accent-glow: rgba(20, 184, 166, 0.45);
-  }
-  [data-theme="phantom-violet"] {
-    --bg-base: #0c0514; --bg-surface: rgba(22, 10, 36, 0.82); --bg-elevated: rgba(34, 16, 56, 0.9);
-    --border-subtle: rgba(192, 132, 252, 0.28); --border-strong: rgba(192, 132, 252, 0.55);
-    --accent: #c084fc; --accent-2: #818cf8; --accent-glow: rgba(192, 132, 252, 0.45);
-  }
-  [data-theme="titanium-mint"] {
-    --bg-base: #06100e; --bg-surface: rgba(12, 29, 26, 0.82); --bg-elevated: rgba(19, 44, 40, 0.9);
-    --border-subtle: rgba(45, 212, 191, 0.28); --border-strong: rgba(45, 212, 191, 0.55);
-    --accent: #2dd4bf; --accent-2: #a7f3d0; --accent-glow: rgba(45, 212, 191, 0.45);
-  }
-
-  /* ==========================================================================
-     2. CORE RESET, CARBON FIBER WEAVE & MOTION SYSTEM
-     ========================================================================== */
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-  html, body {
-    height: 100%; width: 100%; background: var(--bg-base); color: var(--text-main);
-    overflow: hidden; transition: background 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  /* Woven Carbon Fiber + Ambient Aura Overlay */
-  body::before {
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    opacity: var(--carbon-opacity);
-    background-image:
-      linear-gradient(27deg, #151515 5px, transparent 5px),
-      linear-gradient(207deg, #151515 5px, transparent 5px),
-      linear-gradient(27deg, #222 5px, transparent 5px),
-      linear-gradient(207deg, #222 5px, transparent 5px),
-      linear-gradient(90deg, #1b1b1b 10px, transparent 10px),
-      linear-gradient(#1d1d1d 25%, #1a1a1a 25%, #1a1a1a 50%, transparent 50%, transparent 75%, #242424 75%, #242424);
-    background-size: 20px 20px;
-    background-position: 0 5px, 10px 0, 0 10px, 10px 5px, 0 0, 0 0;
-  }
-
-  .ambient-orb {
-    position: fixed; border-radius: 50%; filter: blur(110px); pointer-events: none; z-index: 0;
-    animation: floatOrb 16s ease-in-out infinite alternate;
-  }
-  .orb-1 { width: 420px; height: 420px; background: var(--accent); opacity: 0.16; top: -80px; left: -60px; }
-  .orb-2 { width: 380px; height: 380px; background: var(--accent-2); opacity: 0.12; bottom: -100px; right: -40px; animation-delay: -6s; }
-
-  @keyframes floatOrb {
-    0% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(45px, 30px) scale(1.12); }
-    100% { transform: translate(-25px, 50px) scale(0.95); }
-  }
-
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 99px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-
-  /* ==========================================================================
-     3. MICRO-INTERACTIONS & KEYFRAME ANIMATIONS
-     ========================================================================== */
-  @keyframes slideUpSpring {
-    0% { opacity: 0; transform: translateY(18px) scale(0.96); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  @keyframes messagePop {
-    0% { opacity: 0; transform: translateY(12px) scale(0.95); }
-    70% { transform: translateY(-2px) scale(1.01); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 14px var(--accent-glow); }
-    50% { box-shadow: 0 0 28px var(--accent-glow), 0 0 8px var(--accent-2); }
-  }
-  @keyframes coinSpin {
-    0% { transform: rotateY(0deg) scale(1); }
-    50% { transform: rotateY(180deg) scale(1.12); }
-    100% { transform: rotateY(360deg) scale(1); }
-  }
-  @keyframes shimmerSweep {
-    0% { transform: translateX(-120%) skewX(-20deg); }
-    100% { transform: translateX(220%) skewX(-20deg); }
-  }
-  @keyframes radarPing {
-    0% { transform: scale(0.8); opacity: 0.9; }
-    100% { transform: scale(2.4); opacity: 0; }
-  }
-  @keyframes floatBadge {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-  }
-
-  .anim-spring { animation: slideUpSpring 0.42s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .anim-msg { animation: messagePop 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
-
-  .btn-pro {
-    position: relative; overflow: hidden; border: 1px solid var(--border-subtle);
-    background: var(--bg-elevated); color: var(--text-main); border-radius: 12px;
-    padding: 10px 16px; font-weight: 600; font-size: 0.88rem; cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    transition: all 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .btn-pro:hover {
-    transform: translateY(-2px); border-color: var(--accent);
-    box-shadow: 0 8px 22px -6px var(--accent-glow);
-  }
-  .btn-pro:active { transform: translateY(0) scale(0.97); }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: #05050a; font-weight: 800; border: none;
-  }
-  .btn-primary::after {
-    content: ""; position: absolute; top: 0; left: 0; width: 45%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
-    animation: shimmerSweep 3.5s infinite;
-  }
-
-  /* ==========================================================================
-     4. AUTH SCREEN
-     ========================================================================== */
-  #auth-screen {
-    position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(circle at top, rgba(168,85,247,0.18), transparent 60%), var(--bg-base);
-    padding: 20px;
-  }
-  .auth-card {
-    width: 100%; max-width: 430px; background: var(--bg-surface); backdrop-filter: blur(24px);
-    border: 1px solid var(--border-strong); border-radius: 24px; padding: 34px;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.65), 0 0 40px var(--accent-glow);
-  }
-  .brand-logo {
-    display: flex; align-items: center; gap: 12px; font-size: 1.65rem; font-weight: 900;
-    letter-spacing: -0.04em; background: linear-gradient(135deg, #fff, var(--accent), var(--accent-2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .input-field {
-    width: 100%; background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle);
-    border-radius: 12px; padding: 12px 14px; color: var(--text-main); font-size: 0.92rem;
-    outline: none; transition: all 0.22s ease;
-  }
-  .input-field:focus {
-    border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow);
-    background: rgba(0,0,0,0.5);
-  }
-
-  /* ==========================================================================
-     5. MAIN APP SHELL (3-COLUMN PROFESSIONAL LAYOUT)
-     ========================================================================== */
-  #app-shell {
-    position: relative; z-index: 1; display: none; height: 100vh; width: 100vw;
-    grid-template-columns: 76px 290px 1fr; overflow: hidden;
-  }
-  #app-shell.active { display: grid; }
-
-  /* Rail Navigation */
-  .nav-rail {
-    background: rgba(9, 6, 18, 0.85); backdrop-filter: blur(20px);
-    border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column;
-    align-items: center; padding: 16px 0; gap: 12px; z-index: 20;
-  }
-  .rail-item {
-    position: relative; width: 48px; height: 48px; border-radius: 16px;
-    display: flex; align-items: center; justify-content: center; color: var(--text-muted);
-    background: var(--bg-glass); border: 1px solid transparent; cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .rail-item:hover {
-    color: var(--text-main); border-color: var(--border-subtle); transform: translateY(-2px) scale(1.05);
-  }
-  .rail-item.active {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: #06060c; box-shadow: 0 8px 20px var(--accent-glow); border-radius: 14px;
-  }
-  .rail-item[data-tooltip]::after {
-    content: attr(data-tooltip); position: absolute; left: 62px; background: var(--bg-elevated);
-    color: var(--text-main); padding: 6px 12px; border-radius: 8px; font-size: 0.78rem;
-    font-weight: 600; white-space: nowrap; border: 1px solid var(--border-subtle);
-    opacity: 0; pointer-events: none; transform: translateX(-6px); transition: all 0.2s ease;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.45); z-index: 99;
-  }
-  .rail-item:hover::after { opacity: 1; transform: translateX(0); }
-
-  /* Secondary Sidebar (Channels, Friends, Wallet Summary) */
-  .side-panel {
-    background: var(--bg-surface); backdrop-filter: blur(22px);
-    border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column;
-    overflow: hidden;
-  }
-  .wallet-pill {
-    margin: 14px; padding: 14px; border-radius: 18px;
-    background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.35));
-    border: 1px solid var(--border-strong); cursor: pointer;
-    transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .wallet-pill:hover {
-    transform: translateY(-2px); box-shadow: 0 10px 25px -8px var(--accent-glow);
-  }
-  .klycoin-icon {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #fde047, #f59e0b 65%, #b45309);
-    display: inline-flex; align-items: center; justify-content: center;
-    color: #1c1002; font-weight: 900; font-size: 0.85rem;
-    box-shadow: 0 0 14px rgba(245, 158, 11, 0.55);
-    animation: coinSpin 6s infinite linear;
-  }
-
-  .premium-badge {
-    display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 99px;
-    background: linear-gradient(90deg, #f59e0b, #ec4899, var(--accent-2));
-    color: #05050a; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.04em;
-    animation: floatBadge 3s ease-in-out infinite;
-  }
-
-  .list-item {
-    display: flex; align-items: center; gap: 11px; padding: 10px 12px; margin: 3px 10px;
-    border-radius: 13px; cursor: pointer; color: var(--text-muted);
-    transition: all 0.2s ease; border: 1px solid transparent;
-  }
-  .list-item:hover { background: var(--bg-glass); color: var(--text-main); transform: translateX(3px); }
-  .list-item.active {
-    background: rgba(255,255,255,0.08); color: var(--text-main);
-    border-color: var(--border-subtle); box-shadow: 0 4px 14px rgba(0,0,0,0.2);
-  }
-
-  /* Main Workspace */
-  .main-stage {
-    display: flex; flex-direction: column; height: 100%; overflow: hidden; position: relative;
-  }
-  .topbar {
-    height: 66px; padding: 0 22px; border-bottom: 1px solid var(--border-subtle);
-    background: rgba(9, 6, 18, 0.65); backdrop-filter: blur(18px);
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  }
-
-  /* Views inside Main Stage */
-  .stage-view { display: none; flex: 1; overflow-y: auto; padding: 22px; }
-  .stage-view.active { display: flex; flex-direction: column; }
-
-  /* Chat Feed & Bubbles */
-  #view-chat.active { padding: 0; }
-  .chat-messages {
-    flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 14px;
-  }
-  .msg-row { display: flex; gap: 12px; max-width: 78%; }
-  .msg-row.own { align-self: flex-end; flex-direction: row-reverse; }
-  .msg-avatar {
-    width: 38px; height: 38px; border-radius: 12px; object-fit: cover;
-    border: 1px solid var(--border-strong); flex-shrink: 0;
-  }
-  .msg-bubble {
-    background: var(--bg-elevated); border: 1px solid var(--border-subtle);
-    padding: 11px 15px; border-radius: 16px; font-size: 0.92rem; line-height: 1.48;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25); position: relative;
-  }
-  .msg-row.own .msg-bubble {
-    background: linear-gradient(135deg, rgba(168,85,247,0.24), rgba(10,223,255,0.16));
-    border-color: var(--border-strong);
-  }
-  .msg-actions {
-    display: flex; gap: 6px; margin-top: 6px; opacity: 0.65; transition: opacity 0.2s;
-  }
-  .msg-bubble:hover .msg-actions { opacity: 1; }
-
-  .composer-bar {
-    padding: 14px 20px; border-top: 1px solid var(--border-subtle);
-    background: rgba(9, 6, 18, 0.78); backdrop-filter: blur(20px);
-    display: flex; flex-direction: column; gap: 10px;
-  }
-  .composer-row { display: flex; align-items: center; gap: 10px; }
-
-  /* ==========================================================================
-     6. KLYCOINS STORE, PREMIUM & ADMIN GENERATOR CARDS
-     ========================================================================== */
-  .grid-cards {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px;
-  }
-  .store-card {
-    position: relative; overflow: hidden; background: var(--bg-surface);
-    border: 1px solid var(--border-subtle); border-radius: 22px; padding: 22px;
-    display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
-    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .store-card:hover {
-    transform: translateY(-6px) scale(1.015); border-color: var(--accent);
-    box-shadow: 0 18px 40px -12px var(--accent-glow);
-  }
-  .store-card.featured {
-    border-color: var(--accent-2);
-    background: linear-gradient(160deg, rgba(168,85,247,0.16), rgba(10,223,255,0.12)), var(--bg-surface);
-    animation: pulseGlow 4s infinite;
-  }
-  .tag-ribbon {
-    position: absolute; top: 14px; right: 14px; padding: 4px 10px; border-radius: 99px;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
-    color: #05050a; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
-  }
-
-  /* Theme Swatch Card */
-  .theme-card {
-    background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 16px;
-    padding: 14px; cursor: pointer; transition: all 0.25s ease;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .theme-card:hover { transform: translateY(-3px); border-color: var(--accent); }
-  .theme-card.active { border: 2px solid var(--accent-2); box-shadow: 0 0 20px var(--accent-glow); }
-
-  /* Modals & Toasts */
-  .modal-backdrop {
-    position: fixed; inset: 0; z-index: 200; background: rgba(3, 2, 8, 0.78);
-    backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; padding: 20px;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal-box {
-    width: 100%; max-width: 520px; background: var(--bg-elevated);
-    border: 1px solid var(--border-strong); border-radius: 24px; padding: 26px;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.75); animation: slideUpSpring 0.35s ease;
-  }
-  #toast-container {
-    position: fixed; bottom: 22px; right: 22px; z-index: 999;
-    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-  }
-  .toast {
-    background: var(--bg-elevated); border: 1px solid var(--border-strong);
-    color: var(--text-main); padding: 12px 18px; border-radius: 14px; font-size: 0.86rem;
-    font-weight: 600; box-shadow: 0 14px 30px rgba(0,0,0,0.5);
-    animation: slideUpSpring 0.3s ease; display: flex; align-items: center; gap: 10px;
-  }
-
-  /* Snap Radar Map */
-  #radar-map { width: 100%; height: 100%; min-height: 440px; border-radius: 20px; border: 1px solid var(--border-strong); }
-
-  /* Whiteboard */
-  #whiteboard-canvas {
-    width: 100%; height: 420px; background: #0c0918; border-radius: 18px;
-    border: 1px solid var(--border-strong); cursor: crosshair; touch-action: none;
-  }
-
-  @media (max-width: 860px) {
-    #app-shell.active { grid-template-columns: 64px 1fr; }
-    .side-panel { display: none; }
-    .side-panel.mobile-open {
-      display: flex; position: fixed; left: 64px; top: 0; bottom: 0; width: 270px; z-index: 50;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PIXIECHAT v3.0 — 144FPS Motion Engine, VIP Suite, Themes & Characters</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <style>
+    :root {
+      --bg: #0b0912;
+      --surface: #151122;
+      --surface-2: #1e1830;
+      --accent: #9b5cff;
+      --accent-2: #0adfff;
+      --text: #f5f2ff;
+      --muted: #a69ec2;
+      --border: rgba(255, 255, 255, 0.11);
+      --danger: #ff4d6d;
+      --success: #2ce69b;
+      --motion-scale: 1;
+      --glow-strength: 0.25;
+      --carbon: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.038) 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.025) 1px, transparent 1px);
     }
-  }
-</style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      background-image: var(--carbon);
+      background-size: 16px 16px;
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background-color 0.18s cubic-bezier(0.16, 1, 0.3, 1), color 0.18s ease;
+    }
+
+    /* High-refresh-rate GPU-composited motion library (144Hz-ready transforms/opacity/filter) */
+    .motion-gpu {
+      will-change: transform, opacity;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+    }
+
+    @keyframes fx-float {
+      0%, 100% { transform: translate3d(0, 0, 0); }
+      50% { transform: translate3d(0, calc(-8px * var(--motion-scale)), 0); }
+    }
+
+    @keyframes fx-pulse-ring {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.9; }
+      50% { transform: translate3d(0, 0, 0) scale(calc(1 + 0.04 * var(--motion-scale))); opacity: 1; }
+    }
+
+    @keyframes fx-tilt-sweep {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+      25% { transform: translate3d(calc(3px * var(--motion-scale)), calc(-2px * var(--motion-scale)), 0) rotate(calc(1.4deg * var(--motion-scale))); }
+      75% { transform: translate3d(calc(-3px * var(--motion-scale)), calc(2px * var(--motion-scale)), 0) rotate(calc(-1.4deg * var(--motion-scale))); }
+    }
+
+    @keyframes fx-orbit-bob {
+      0% { transform: translate3d(calc(-5px * var(--motion-scale)), 0, 0) scale(1); }
+      50% { transform: translate3d(calc(5px * var(--motion-scale)), calc(-6px * var(--motion-scale)), 0) scale(1.02); }
+      100% { transform: translate3d(calc(-5px * var(--motion-scale)), 0, 0) scale(1); }
+    }
+
+    @keyframes fx-scan-sheen {
+      0% { transform: translate3d(-120%, 0, 0) skewX(-18deg); opacity: 0; }
+      35% { opacity: 0.45; }
+      100% { transform: translate3d(240%, 0, 0) skewX(-18deg); opacity: 0; }
+    }
+
+    @keyframes fx-elastic-pop {
+      0% { transform: translate3d(0, 10px, 0) scale(0.96); opacity: 0; }
+      65% { transform: translate3d(0, -2px, 0) scale(1.015); opacity: 1; }
+      100% { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+    }
+
+    @keyframes fx-breathe-glow {
+      0%, 100% { filter: drop-shadow(0 0 calc(4px * var(--glow-strength) * 16) color-mix(in srgb, var(--accent-2) 65%, transparent)); }
+      50% { filter: drop-shadow(0 0 calc(10px * var(--glow-strength) * 16) color-mix(in srgb, var(--accent) 85%, transparent)); }
+    }
+
+    @keyframes fx-spring-jiggle {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      20% { transform: translate3d(0, -4px, 0) scale(1.03, 0.97); }
+      45% { transform: translate3d(0, 2px, 0) scale(0.98, 1.02); }
+      70% { transform: translate3d(0, -2px, 0) scale(1.01, 0.99); }
+    }
+
+    @keyframes fx-hyper-drift {
+      0% { transform: translate3d(0, 0, 0); }
+      25% { transform: translate3d(calc(6px * var(--motion-scale)), calc(-4px * var(--motion-scale)), 0); }
+      50% { transform: translate3d(0, calc(-7px * var(--motion-scale)), 0); }
+      75% { transform: translate3d(calc(-6px * var(--motion-scale)), calc(-2px * var(--motion-scale)), 0); }
+      100% { transform: translate3d(0, 0, 0); }
+    }
+
+    .anim-float { animation: fx-float calc(2.4s / var(--motion-scale)) ease-in-out infinite; }
+    .anim-pulse { animation: fx-pulse-ring calc(1.8s / var(--motion-scale)) ease-in-out infinite; }
+    .anim-tilt { animation: fx-tilt-sweep calc(2.2s / var(--motion-scale)) ease-in-out infinite; }
+    .anim-orbit { animation: fx-orbit-bob calc(2.6s / var(--motion-scale)) ease-in-out infinite; }
+    .anim-pop { animation: fx-elastic-pop calc(0.32s / var(--motion-scale)) cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .anim-glow { animation: fx-breathe-glow calc(2.5s / var(--motion-scale)) ease-in-out infinite; }
+    .anim-jiggle { animation: fx-spring-jiggle calc(1.9s / var(--motion-scale)) ease-in-out infinite; }
+    .anim-drift { animation: fx-hyper-drift calc(3.2s / var(--motion-scale)) linear infinite; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 20px;
+      background: color-mix(in srgb, var(--surface) 86%, transparent);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      font-size: 1.05rem;
+    }
+
+    .brand-badge {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: color-mix(in srgb, var(--accent) 24%, transparent);
+      border: 1px solid var(--accent);
+      color: var(--text);
+    }
+
+    .fps-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      background: #090710;
+      border: 1px solid color-mix(in srgb, var(--accent-2) 55%, transparent);
+      color: var(--accent-2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .vip-badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, rgba(155,92,255,0.28), rgba(10,223,255,0.28));
+      border: 1px solid var(--accent-2);
+      color: var(--accent-2);
+      display: none;
+    }
+
+    .vip-badge.active {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 8px 13px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      transform: translate3d(0, -1px, 0);
+    }
+
+    .tab-btn:active {
+      transform: translate3d(0, 1px, 0) scale(0.98);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+
+    .wallet-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .wallet-pill span.val {
+      color: var(--accent-2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .container {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 24px 20px 64px;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+      animation: fx-elastic-pop calc(0.28s / var(--motion-scale)) cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-top: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+      gap: 15px;
+      margin-bottom: 26px;
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.14s ease, box-shadow 0.14s ease;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      width: 45%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .card:hover {
+      transform: translate3d(0, -3px, 0);
+      border-color: color-mix(in srgb, var(--accent) 65%, transparent);
+    }
+
+    .card:hover::after {
+      animation: fx-scan-sheen calc(0.75s / var(--motion-scale)) ease-out;
+    }
+
+    .card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .card.vip-card {
+      border-color: rgba(10, 223, 255, 0.36);
+      background: linear-gradient(160deg, var(--surface), color-mix(in srgb, var(--accent) 13%, var(--surface)));
+    }
+
+    .swatch-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .price-tag {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--accent-2);
+    }
+
+    .btn {
+      padding: 9px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.11s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.14s ease, background-color 0.14s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      transform: translate3d(0, -1px, 0);
+    }
+
+    .btn:active {
+      transform: translate3d(0, 1px, 0) scale(0.97);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn.cyan {
+      background: transparent;
+      border-color: var(--accent-2);
+      color: var(--accent-2);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status-banner {
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+      font-size: 0.92rem;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+    }
+
+    .status-banner.ok {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .status-banner.err {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .claimed-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .claimed-list {
+      list-style: none;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .claimed-item {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      font-size: 0.9rem;
+    }
+
+    code.pin-code {
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.35);
+      color: var(--accent-2);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* 144FPS Motion Lab */
+    .motion-stage-wrap {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    @media (max-width: 900px) {
+      .motion-stage-wrap {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    #motion-lab-canvas {
+      width: 100%;
+      height: 360px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #07060d;
+      display: block;
+    }
+
+    .motion-controls-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .preset-tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.12s ease, border-color 0.14s ease;
+    }
+
+    .preset-tile:hover {
+      border-color: var(--accent-2);
+      transform: translate3d(0, -2px, 0);
+    }
+
+    .preset-tile.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .map-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+
+    select, input[type="text"], input[type="range"], textarea {
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 0.92rem;
+    }
+
+    input[type="range"] {
+      padding: 4px 0;
+      accent-color: var(--accent-2);
+    }
+
+    #klyxmap-canvas {
+      width: 100%;
+      height: 460px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .settings-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    label.field-label {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .chat-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 780px) {
+      .chat-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .chat-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .msg-bubble {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--surface-2);
+      font-size: 0.9rem;
+    }
+
+    .msg-bubble.me {
+      border-left: 3px solid var(--accent-2);
+    }
+
+    .log-console {
+      background: #07060c;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.78rem;
+      color: var(--muted);
+      max-height: 190px;
+      overflow-y: auto;
+    }
+
+    .char-builder-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 820px) {
+      .char-builder-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .avatar-stage {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .customizer-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .color-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .color-chip {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .color-chip.active {
+      border-color: #ffffff;
+      transform: scale(1.1);
+    }
+
+    .vip-perks-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+  </style>
 </head>
 <body>
-
-<div class="ambient-orb orb-1"></div>
-<div class="ambient-orb orb-2"></div>
-<div id="toast-container"></div>
-
-<!-- ==========================================================================
-     AUTHENTICATION VIEW
-     ========================================================================== -->
-<div id="auth-screen">
-  <div class="auth-card anim-spring">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:22px;">
-      <div class="brand-logo">
-        <i data-lucide="sparkles" style="color:var(--accent-2); width:28px; height:28px;"></i>
-        KLYXORA
-      </div>
-      <span style="font-size:0.74rem; padding:4px 10px; border-radius:99px; background:var(--bg-glass); border:1px solid var(--border-subtle); color:var(--accent-2); font-weight:700;">v3.0 PRO</span>
-    </div>
-    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:22px; line-height:1.5;">
-      Real-time encrypted chat, WebRTC calls, Snap Radar, 16 bespoke themes & KlyCoins economy.
-    </p>
-
-    <div style="display:flex; gap:8px; margin-bottom:18px; background:rgba(0,0,0,0.3); padding:5px; border-radius:14px;">
-      <button id="tab-login" class="btn-pro btn-primary" style="flex:1;" onclick="switchAuthTab('login')">Sign In</button>
-      <button id="tab-register" class="btn-pro" style="flex:1; border:none; background:transparent;" onclick="switchAuthTab('register')">Create Account</button>
+  <header class="topbar">
+    <div class="brand">
+      <span>PIXIECHAT</span>
+      <span class="brand-badge">v3.0 144FPS</span>
+      <span id="live-fps-pill" class="fps-pill">0 FPS</span>
+      <span id="header-vip-badge" class="vip-badge">VIP ACTIVE</span>
     </div>
 
-    <form id="auth-form" onsubmit="handleAuth(event)" style="display:flex; flex-direction:column; gap:13px;">
-      <div id="username-wrap" style="display:none;">
-        <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:5px;">Display Handle</label>
-        <input id="auth-username" class="input-field" type="text" placeholder="e.g. davicho" />
-      </div>
-      <div>
-        <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:5px;">Email Address</label>
-        <input id="auth-email" class="input-field" type="email" required placeholder="you@klyxora.app" />
-      </div>
-      <div>
-        <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:5px;">Password</label>
-        <input id="auth-password" class="input-field" type="password" required placeholder="••••••••" />
-      </div>
-      <button type="submit" class="btn-pro btn-primary" style="margin-top:6px; padding:13px; font-size:0.95rem;">
-        <i data-lucide="zap" style="width:18px; height:18px;"></i>
-        <span id="auth-submit-text">Launch Klyxora</span>
-      </button>
-    </form>
-  </div>
-</div>
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="store" role="tab">Store</button>
+      <button class="tab-btn" data-tab="motion" role="tab">144FPS Motion</button>
+      <button class="tab-btn" data-tab="characters" role="tab">Character</button>
+      <button class="tab-btn" data-tab="klyxmap" role="tab">KlyxMap</button>
+      <button class="tab-btn" data-tab="chat" role="tab">Chat & Friends</button>
+      <button class="tab-btn" data-tab="settings" role="tab">Settings</button>
+    </nav>
 
-<!-- ==========================================================================
-     MAIN APPLICATION SHELL
-     ========================================================================== -->
-<div id="app-shell">
-  <!-- 1. Left Icon Navigation Rail -->
-  <nav class="nav-rail">
-    <div class="rail-item active" data-view="chat" data-tooltip="Live Chat & Voice" onclick="switchView('chat', this)">
-      <i data-lucide="message-square"></i>
+    <div class="wallet-pill">
+      <span>Tokens:</span>
+      <span class="val" id="header-tokens">0</span>
     </div>
-    <div class="rail-item" data-view="radar" data-tooltip="Snap Radar Map" onclick="switchView('radar', this)">
-      <i data-lucide="radar"></i>
-    </div>
-    <div class="rail-item" data-view="collab" data-tooltip="Whiteboard & Watch Party" onclick="switchView('collab', this)">
-      <i data-lucide="tv"></i>
-    </div>
-    <div class="rail-item" data-view="store" data-tooltip="KlyCoins Store & Premium" onclick="switchView('store', this)">
-      <i data-lucide="coins"></i>
-    </div>
-    <div class="rail-item" data-view="themes" data-tooltip="Appearance Studio (16 Themes)" onclick="switchView('themes', this)">
-      <i data-lucide="palette"></i>
-    </div>
-    <div class="rail-item" data-view="bookmarks" data-tooltip="Saved Bookmarks" onclick="switchView('bookmarks', this)">
-      <i data-lucide="bookmark"></i>
-    </div>
-    <div id="rail-admin-btn" class="rail-item" style="display:none; border-color:rgba(245,158,11,0.45); color:#fbbf24;" data-view="admin" data-tooltip="Admin KlyCoin Forge & Mod" onclick="switchView('admin', this)">
-      <i data-lucide="shield-check"></i>
-    </div>
+  </header>
 
-    <div style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
-      <div class="rail-item" data-tooltip="Sign Out" onclick="signOut()">
-        <i data-lucide="log-out"></i>
-      </div>
-    </div>
-  </nav>
-
-  <!-- 2. Secondary Sidebar (Profile, Wallet, Channels, Invite-Only Friends) -->
-  <aside id="side-panel" class="side-panel">
-    <div style="padding:18px 16px 8px; display:flex; align-items:center; justify-content:space-between;">
-      <div class="brand-logo" style="font-size:1.25rem;">KLYXORA</div>
-      <span id="role-pill" style="font-size:0.68rem; padding:3px 8px; border-radius:99px; background:var(--bg-glass); border:1px solid var(--border-subtle); color:var(--accent-2); font-weight:700;">MEMBER</span>
-    </div>
-
-    <!-- KlyCoins Wallet Widget -->
-    <div class="wallet-pill" onclick="switchView('store')">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-        <div style="display:flex; align-items:center; gap:9px;">
-          <span class="klycoin-icon">K</span>
-          <div>
-            <div style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">KLYCOINS BALANCE</div>
-            <div id="wallet-balance" style="font-size:1.15rem; font-weight:900; font-family:'JetBrains Mono', monospace;">0</div>
-          </div>
-        </div>
-        <button class="btn-pro btn-primary" style="padding:5px 10px; font-size:0.74rem; border-radius:9px;">+ Top Up</button>
-      </div>
-      <div id="premium-status-bar" style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.07); padding-top:7px;">
-        <span>Tier: <strong id="user-tier-label" style="color:var(--text-main);">Standard</strong></span>
-        <span style="color:var(--accent-2); font-weight:700;">Upgrade →</span>
-      </div>
-    </div>
-
-    <!-- Channels -->
-    <div style="padding:8px 16px 4px; font-size:0.72rem; font-weight:800; color:var(--text-muted); letter-spacing:0.06em;">CHANNELS</div>
-    <div id="channel-list">
-      <div class="list-item active" onclick="selectChannel('general', 'General Lounge', this)">
-        <i data-lucide="hash" style="width:17px; height:17px; color:var(--accent-2);"></i>
-        <span style="font-weight:600; font-size:0.88rem;">general-lounge</span>
-      </div>
-      <div class="list-item" onclick="selectChannel('vip-club', 'Klyxora VIP Club', this)">
-        <i data-lucide="crown" style="width:17px; height:17px; color:#f59e0b;"></i>
-        <span style="font-weight:600; font-size:0.88rem;">vip-premium-club</span>
-      </div>
-      <div class="list-item" onclick="selectChannel('gaming', 'Squad & Gaming', this)">
-        <i data-lucide="gamepad-2" style="width:17px; height:17px; color:var(--accent);"></i>
-        <span style="font-weight:600; font-size:0.88rem;">squad-gaming</span>
-      </div>
-    </div>
-
-    <!-- Invite-Only Friends Search -->
-    <div style="padding:14px 16px 6px; display:flex; align-items:center; justify-content:space-between;">
-      <span style="font-size:0.72rem; font-weight:800; color:var(--text-muted); letter-spacing:0.06em;">INVITE-ONLY CIRCLE</span>
-      <button onclick="openModal('friend-modal')" style="background:none; border:none; color:var(--accent-2); cursor:pointer; font-size:0.78rem; font-weight:700;">+ Add</button>
-    </div>
-    <div id="friends-list" style="flex:1; overflow-y:auto; padding-bottom:12px;"></div>
-
-    <!-- Current User Footer -->
-    <div style="padding:12px 14px; border-top:1px solid var(--border-subtle); background:rgba(0,0,0,0.28); display:flex; align-items:center; gap:10px;">
-      <img id="me-avatar" src="https://api.dicebear.com/9.x/bottts-neutral/svg?seed=klyxora" style="width:36px; height:36px; border-radius:11px; border:1px solid var(--accent);" />
-      <div style="flex:1; min-width:0;">
-        <div id="me-name" style="font-size:0.86rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">User</div>
-        <div style="font-size:0.72rem; color:#10b981; display:flex; align-items:center; gap:5px;">
-          <span style="width:7px; height:7px; border-radius:50%; background:#10b981; display:inline-block;"></span> Online
-        </div>
-      </div>
-      <button class="btn-pro" style="padding:7px;" title="Synthesized Soundboard" onclick="openModal('soundboard-modal')">
-        <i data-lucide="volume-2" style="width:16px; height:16px;"></i>
-      </button>
-    </div>
-  </aside>
-
-  <!-- 3. Main Workspace Stage -->
-  <main class="main-stage">
-    <!-- Top Header -->
-    <header class="topbar">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <button class="btn-pro" style="padding:8px; display:none;" id="mobile-menu-btn" onclick="document.getElementById('side-panel').classList.toggle('mobile-open')">
-          <i data-lucide="menu" style="width:18px; height:18px;"></i>
-        </button>
+  <main class="container">
+    <!-- STORE TAB -->
+    <section id="tab-store" class="panel active">
+      <div class="section-header">
         <div>
-          <h2 id="stage-title" style="font-size:1.05rem; font-weight:800; display:flex; align-items:center; gap:8px;">
-            # general-lounge
-          </h2>
-          <p id="stage-subtitle" style="font-size:0.76rem; color:var(--text-muted);">End-to-end realtime channel • Profanity shield active</p>
+          <h1 class="section-title">Store</h1>
+          <p class="section-sub">Unlock VIP functions, switch 14 themes, manage tokens, and redeem PlayStation gift cards.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn cyan" id="add-1000-tokens">+1,000 Tokens</button>
+          <button class="btn" id="add-11000-tokens">+11,000 Tokens</button>
         </div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:9px;">
-        <button class="btn-pro" onclick="startCall('audio')" title="WebRTC Voice Call">
-          <i data-lucide="phone" style="width:16px; height:16px; color:#10b981;"></i>
-          <span>Voice</span>
-        </button>
-        <button class="btn-pro" onclick="startCall('video')" title="WebRTC Video Call">
-          <i data-lucide="video" style="width:16px; height:16px; color:var(--accent-2);"></i>
-          <span>Video</span>
-        </button>
-        <button class="btn-pro btn-primary" onclick="switchView('store')">
-          <span class="klycoin-icon" style="width:20px; height:20px; font-size:0.7rem;">K</span>
-          <span id="topbar-coins">0</span>
-        </button>
-      </div>
-    </header>
+      <div id="store-status" class="status-banner">Ready. Tokens available in Store; themes stay synced with Settings.</div>
 
-    <!-- ======================================================================
-         VIEW A: REAL-TIME CHAT
-         ====================================================================== -->
-    <section id="view-chat" class="stage-view active">
-      <div id="chat-messages" class="chat-messages"></div>
+      <h2 style="font-size:1.1rem;margin-bottom:12px;">VIP Passes & VIP Functions</h2>
+      <div id="store-vip-grid" class="grid"></div>
 
-      <div class="composer-bar">
-        <div id="schedule-bar" style="display:none; align-items:center; gap:10px; font-size:0.8rem; color:var(--accent-2);">
-          <i data-lucide="clock" style="width:15px; height:15px;"></i>
-          <span>Schedule delivery:</span>
-          <input type="datetime-local" id="schedule-time" class="input-field" style="width:auto; padding:5px 10px; font-size:0.78rem;" />
-          <button class="btn-pro" style="padding:4px 10px; font-size:0.75rem;" onclick="toggleSchedule()">Cancel</button>
-        </div>
-
-        <div class="composer-row">
-          <button class="btn-pro" style="padding:10px;" title="Live Speech-to-Text Dictation" onclick="startDictation()">
-            <i data-lucide="mic" id="mic-icon" style="width:18px; height:18px; color:var(--accent);"></i>
-          </button>
-          <button class="btn-pro" style="padding:10px;" title="Schedule Message" onclick="toggleSchedule()">
-            <i data-lucide="calendar-clock" style="width:18px; height:18px;"></i>
-          </button>
-          <button class="btn-pro" style="padding:10px;" title="Soundboard" onclick="openModal('soundboard-modal')">
-            <i data-lucide="music" style="width:18px; height:18px; color:var(--accent-2);"></i>
-          </button>
-          <input id="chat-input" class="input-field" type="text" placeholder="Message #general-lounge..." onkeydown="if(event.key==='Enter') sendMessage()" />
-          <button class="btn-pro btn-primary" onclick="sendMessage()">
-            <i data-lucide="send" style="width:17px; height:17px;"></i>
-            <span>Send</span>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======================================================================
-         VIEW B: KLYCOINS STORE & PREMIUM MEMBERSHIP
-         ====================================================================== -->
-    <section id="view-store" class="stage-view">
-      <!-- Top Redeem & Balance Banner -->
-      <div class="store-card featured anim-spring" style="margin-bottom:24px; flex-direction:row; flex-wrap:wrap; align-items:center;">
-        <div style="flex:1; min-width:260px;">
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-            <span class="klycoin-icon" style="width:36px; height:36px; font-size:1.1rem;">K</span>
-            <h2 style="font-size:1.45rem; font-weight:900;">KlyCoins Treasury & Premium</h2>
-          </div>
-          <p style="color:var(--text-muted); font-size:0.9rem;">
-            Exchange rate: <strong style="color:var(--accent-2);">1,000 KlyCoins = €1.00</strong>. Purchase coin packs or redeem an official Admin KlyCoin voucher code below.
-          </p>
-        </div>
-
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-          <input id="redeem-code-input" class="input-field" style="width:220px; font-family:'JetBrains Mono', monospace; text-transform:uppercase;" placeholder="KLYX-XXXX-XXXX" />
-          <button class="btn-pro btn-primary" onclick="redeemKlyCoinCode()">
-            <i data-lucide="ticket" style="width:17px; height:17px;"></i>
-            <span>Redeem Code</span>
-          </button>
+      <div id="vip-functions-box" class="claimed-box" style="display:none;">
+        <h3 style="font-size:1rem;">Active VIP Functions</h3>
+        <p class="section-sub">Instant VIP utilities unlocked for your session.</p>
+        <div class="vip-perks-bar">
+          <button type="button" class="btn cyan" id="vip-fn-turbo-tokens">VIP Daily Drop (+25,000 Tokens)</button>
+          <button type="button" class="btn" id="vip-fn-max-motion">VIP Overdrive Motion (2.0x Speed)</button>
+          <button type="button" class="btn" id="vip-fn-custom-tag">VIP Custom Chat Tag</button>
+          <button type="button" class="btn" id="vip-fn-multi-pins">VIP Drop 5 Map Pins</button>
         </div>
       </div>
 
-      <!-- KlyCoin Packs (1000 KlyCoins = €1) -->
-      <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
-        <i data-lucide="package" style="color:var(--accent-2);"></i> KlyCoins Top-Up Packs
-      </h3>
-      <div class="grid-cards" style="margin-bottom:30px;">
-        <div class="store-card anim-spring">
+      <h2 style="font-size:1.1rem;margin-bottom:12px;">Themes (Classic, Legacy & VIP)</h2>
+      <div id="store-themes-grid" class="grid"></div>
+
+      <h2 style="font-size:1.1rem;margin-bottom:12px;">PlayStation Gift Cards</h2>
+      <div class="grid">
+        <div class="card">
           <div>
-            <div style="font-size:0.8rem; color:var(--text-muted); font-weight:700;">STARTER POUCH</div>
-            <div style="font-size:1.7rem; font-weight:900; margin:8px 0; display:flex; align-items:center; gap:8px;">
-              <span class="klycoin-icon">K</span> 1,000
-            </div>
-            <p style="font-size:0.82rem; color:var(--text-muted);">Base rate pack • Instant wallet credit</p>
+            <h3>10 € PlayStation Gift Card</h3>
+            <p class="section-sub">Digital PSN store balance voucher (10 EUR).</p>
           </div>
-          <button class="btn-pro btn-primary" onclick="openCheckoutModal('Starter Pouch', 1000, '€1.00')">Buy for €1.00</button>
+          <div>
+            <div class="price-tag" style="margin-bottom:10px;">11,000 Tokens</div>
+            <button class="btn primary" style="width:100%;" data-redeem-id="psn-10" data-redeem-cost="11000" data-redeem-label="10 € PlayStation Gift Card">
+              Redeem for 11,000 Tokens
+            </button>
+          </div>
         </div>
 
-        <div class="store-card anim-spring">
-          <span class="tag-ribbon">+500 BONUS</span>
+        <div class="card">
           <div>
-            <div style="font-size:0.8rem; color:var(--text-muted); font-weight:700;">BOOSTER CRATE</div>
-            <div style="font-size:1.7rem; font-weight:900; margin:8px 0; display:flex; align-items:center; gap:8px;">
-              <span class="klycoin-icon">K</span> 5,500
-            </div>
-            <p style="font-size:0.82rem; color:var(--text-muted);">5,000 + 500 Bonus KlyCoins</p>
+            <h3>20 € PlayStation Gift Card</h3>
+            <p class="section-sub">Digital PSN store balance voucher (20 EUR).</p>
           </div>
-          <button class="btn-pro btn-primary" onclick="openCheckoutModal('Booster Crate', 5500, '€5.00')">Buy for €5.00</button>
-        </div>
-
-        <div class="store-card featured anim-spring">
-          <span class="tag-ribbon">MOST POPULAR • +2,000</span>
           <div>
-            <div style="font-size:0.8rem; color:var(--accent-2); font-weight:800;">CYBER VAULT</div>
-            <div style="font-size:1.7rem; font-weight:900; margin:8px 0; display:flex; align-items:center; gap:8px;">
-              <span class="klycoin-icon">K</span> 12,000
-            </div>
-            <p style="font-size:0.82rem; color:var(--text-muted);">10,000 + 2,000 Bonus KlyCoins</p>
+            <div class="price-tag" style="margin-bottom:10px;">22,000 Tokens</div>
+            <button class="btn primary" style="width:100%;" data-redeem-id="psn-20" data-redeem-cost="22000" data-redeem-label="20 € PlayStation Gift Card">
+              Redeem for 22,000 Tokens
+            </button>
           </div>
-          <button class="btn-pro btn-primary" onclick="openCheckoutModal('Cyber Vault', 12000, '€10.00')">Buy for €10.00</button>
-        </div>
-
-        <div class="store-card anim-spring">
-          <span class="tag-ribbon">+7,500 MEGA BONUS</span>
-          <div>
-            <div style="font-size:0.8rem; color:#f59e0b; font-weight:800;">OBSIDIAN OVERLORD</div>
-            <div style="font-size:1.7rem; font-weight:900; margin:8px 0; display:flex; align-items:center; gap:8px;">
-              <span class="klycoin-icon">K</span> 32,500
-            </div>
-            <p style="font-size:0.82rem; color:var(--text-muted);">25,000 + 7,500 Bonus KlyCoins</p>
-          </div>
-          <button class="btn-pro btn-primary" onclick="openCheckoutModal('Obsidian Overlord', 32500, '€25.00')">Buy for €25.00</button>
         </div>
       </div>
 
-      <!-- Premium Tiers Unlocked Using KlyCoins -->
-      <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:14px; display:flex; align-items:center; gap:8px;">
-        <i data-lucide="crown" style="color:#f59e0b;"></i> Unlock Klyxora Premium with KlyCoins
-      </h3>
-      <div class="grid-cards">
-        <div class="store-card anim-spring">
-          <div>
-            <span class="premium-badge">KLYXORA PLUS</span>
-            <h4 style="font-size:1.25rem; font-weight:800; margin:10px 0 6px;">30 Days Plus</h4>
-            <ul style="font-size:0.83rem; color:var(--text-muted); list-style:none; display:flex; flex-direction:column; gap:6px;">
-              <li>✦ Animated Holographic Profile Badge</li>
-              <li>✦ VIP Channel & Soundboard FX Access</li>
-              <li>✦ Custom Avatar Frame & Priority Relay</li>
-            </ul>
-          </div>
-          <button class="btn-pro btn-primary" onclick="buyPremiumWithCoins('Klyxora Plus (30d)', 2500)">
-            Unlock • 2,500 KlyCoins
-          </button>
-        </div>
-
-        <div class="store-card featured anim-spring">
-          <span class="tag-ribbon">BEST VALUE</span>
-          <div>
-            <span class="premium-badge">KLYXORA ELITE</span>
-            <h4 style="font-size:1.25rem; font-weight:800; margin:10px 0 6px;">90 Days Elite</h4>
-            <ul style="font-size:0.83rem; color:var(--text-muted); list-style:none; display:flex; flex-direction:column; gap:6px;">
-              <li>✦ Everything in Klyxora Plus</li>
-              <li>✦ 4K WebRTC Video & Screen Share</li>
-              <li>✦ Stealth Radar Ghost Mode + 16 Themes</li>
-            </ul>
-          </div>
-          <button class="btn-pro btn-primary" onclick="buyPremiumWithCoins('Klyxora Elite (90d)', 6000)">
-            Unlock • 6,000 KlyCoins
-          </button>
-        </div>
-
-        <div class="store-card anim-spring">
-          <div>
-            <span class="premium-badge">FOUNDER LIFETIME</span>
-            <h4 style="font-size:1.25rem; font-weight:800; margin:10px 0 6px;">Lifetime Sovereign</h4>
-            <ul style="font-size:0.83rem; color:var(--text-muted); list-style:none; display:flex; flex-direction:column; gap:6px;">
-              <li>✦ Permanent Sovereign Crown Emblem</li>
-              <li>✦ Unlimited Scheduled Drops & Bookmarks</li>
-              <li>✦ Zero Cooldowns & Early Feature Access</li>
-            </ul>
-          </div>
-          <button class="btn-pro btn-primary" onclick="buyPremiumWithCoins('Lifetime Sovereign', 15000)">
-            Unlock • 15,000 KlyCoins
-          </button>
-        </div>
+      <div class="claimed-box">
+        <h3 style="font-size:1rem;">Redeemed Gift Cards</h3>
+        <ul id="claimed-list" class="claimed-list"></ul>
       </div>
     </section>
 
-    <!-- ======================================================================
-         VIEW C: ADMIN KLYCOIN CODE GENERATOR & MODERATION CONSOLE
-         ====================================================================== -->
-    <section id="view-admin" class="stage-view">
-      <div class="store-card featured anim-spring" style="margin-bottom:22px;">
-        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
-          <div>
-            <h2 style="font-size:1.35rem; font-weight:900; display:flex; align-items:center; gap:9px;">
-              <i data-lucide="shield-check" style="color:#fbbf24;"></i> Admin KlyCoin Code Forge
-            </h2>
-            <p style="font-size:0.86rem; color:var(--text-muted); margin-top:4px;">
-              Enter any KlyCoin amount and generate an instant single-use redeemable code synced with Supabase & local vault.
-            </p>
-          </div>
-          <span style="font-size:0.75rem; color:var(--accent-2); font-family:'JetBrains Mono', monospace;">Shortcut: Ctrl + Shift + M</span>
-        </div>
-
-        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;">
-          <input id="admin-coin-amount" type="number" min="1" step="100" value="5000" class="input-field" style="max-width:220px; font-family:'JetBrains Mono', monospace; font-size:1rem; font-weight:700;" placeholder="Amount of KlyCoins" />
-          <button class="btn-pro btn-primary" onclick="adminGenerateCoinCode()">
-            <i data-lucide="sparkles" style="width:17px; height:17px;"></i>
-            <span>Generate KlyCoin Code</span>
-          </button>
-        </div>
-
-        <div id="generated-code-banner" style="display:none; margin-top:12px; padding:14px 18px; border-radius:14px; background:rgba(0,0,0,0.45); border:1px dashed var(--accent-2); align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-          <div>
-            <div style="font-size:0.72rem; color:var(--text-muted);">ACTIVE GENERATED VOUCHER</div>
-            <div id="latest-generated-code" style="font-size:1.25rem; font-weight:900; font-family:'JetBrains Mono', monospace; color:var(--accent-2);">KLYX-0000-0000</div>
-          </div>
-          <button class="btn-pro" onclick="copyLatestCode()">
-            <i data-lucide="copy" style="width:15px; height:15px;"></i>
-            <span>Copy Code</span>
-          </button>
-        </div>
-      </div>
-
-      <h3 style="font-size:1rem; font-weight:800; margin-bottom:12px;">Generated KlyCoin Codes Ledger</h3>
-      <div id="admin-codes-list" style="display:flex; flex-direction:column; gap:10px;"></div>
-    </section>
-
-    <!-- ======================================================================
-         VIEW D: 16-THEME APPEARANCE STUDIO
-         ====================================================================== -->
-    <section id="view-themes" class="stage-view">
-      <div style="margin-bottom:18px;">
-        <h2 style="font-size:1.35rem; font-weight:900;">Appearance Studio — 16 Bespoke Themes</h2>
-        <p style="font-size:0.86rem; color:var(--text-muted);">Switch themes live with smooth carbon-fiber weave and neon aura transitions.</p>
-      </div>
-      <div id="themes-grid" class="grid-cards"></div>
-    </section>
-
-    <!-- ======================================================================
-         VIEW E: SNAP RADAR LIVE MAP
-         ====================================================================== -->
-    <section id="view-radar" class="stage-view">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+    <!-- 144FPS MOTION ENGINE TAB -->
+    <section id="tab-motion" class="panel">
+      <div class="section-header">
         <div>
-          <h2 style="font-size:1.25rem; font-weight:900;">Snap Radar — Privacy-First Friend Map</h2>
-          <p style="font-size:0.82rem; color:var(--text-muted);">Share live coordinates only with your approved invite-only circle.</p>
+          <h1 class="section-title">144FPS Motion Studio</h1>
+          <p class="section-sub">Delta-time (`dt`) high-refresh-rate particle & wave simulation + 36 named animation presets.</p>
         </div>
-        <div style="display:flex; gap:10px;">
-          <button class="btn-pro" id="ghost-mode-btn" onclick="toggleGhostMode()">
-            <i data-lucide="eye-off" style="width:16px; height:16px;"></i>
-            <span id="ghost-label">Ghost Mode: OFF</span>
-          </button>
-          <button class="btn-pro btn-primary" onclick="pingMyLocation()">
-            <i data-lucide="crosshair" style="width:16px; height:16px;"></i>
-            <span>Broadcast Location</span>
-          </button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn cyan" id="motion-burst-btn">Trigger Pulse Burst</button>
+          <button class="btn" id="motion-clear-btn">Reset Particles</button>
         </div>
       </div>
-      <div id="radar-map"></div>
+
+      <div class="motion-stage-wrap">
+        <canvas id="motion-lab-canvas"></canvas>
+
+        <div class="motion-controls-box">
+          <div>
+            <label class="field-label" for="motion-speed-slider">Motion Speed: <span id="motion-speed-val">1.00x</span></label>
+            <input id="motion-speed-slider" type="range" min="0.25" max="2.5" step="0.05" value="1" style="width:100%;" />
+          </div>
+
+          <div>
+            <label class="field-label" for="motion-glow-slider">Neon Glow Intensity: <span id="motion-glow-val">0.25</span></label>
+            <input id="motion-glow-slider" type="range" min="0" max="1" step="0.05" value="0.25" style="width:100%;" />
+          </div>
+
+          <div>
+            <label class="field-label" for="motion-particles-slider">Particle Count: <span id="motion-particles-val">96</span></label>
+            <input id="motion-particles-slider" type="range" min="24" max="240" step="12" value="96" style="width:100%;" />
+          </div>
+
+          <div>
+            <label class="field-label" for="motion-css-class-select">UI Element Motion Class</label>
+            <select id="motion-css-class-select" style="width:100%;">
+              <option value="anim-float">Float (Smooth Sine)</option>
+              <option value="anim-pulse">Pulse Ring (Scale)</option>
+              <option value="anim-tilt">Tilt Sweep (Gyro)</option>
+              <option value="anim-orbit">Orbit Bob (Arc)</option>
+              <option value="anim-glow">Breathing Glow</option>
+              <option value="anim-jiggle">Spring Jiggle</option>
+              <option value="anim-drift">Hyper Drift</option>
+            </select>
+          </div>
+
+          <div id="motion-preview-badge" class="card anim-float motion-gpu" style="padding:12px;text-align:center;min-height:auto;">
+            <strong>Live 144Hz Element</strong>
+            <span class="section-sub" id="motion-active-preset-label">Preset #01: Vortex Helix</span>
+          </div>
+        </div>
+      </div>
+
+      <h2 style="font-size:1.1rem;margin-bottom:10px;">36 Animation Presets</h2>
+      <div id="motion-presets-grid" class="preset-grid"></div>
     </section>
 
-    <!-- ======================================================================
-         VIEW F: COLLABORATIVE WHITEBOARD & YOUTUBE WATCH PARTY
-         ====================================================================== -->
-    <section id="view-collab" class="stage-view">
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
-        <div class="store-card">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="font-weight:800;">Live Neon Whiteboard</h3>
-            <div style="display:flex; gap:8px;">
-              <input type="color" id="wb-color" value="#0adfff" style="width:34px; height:34px; border:none; background:none; cursor:pointer;" />
-              <button class="btn-pro" style="padding:6px 12px;" onclick="clearWhiteboard()">Clear</button>
-            </div>
+    <!-- SNAPCHAT-STYLE MAKABLE CHARACTER TAB -->
+    <section id="tab-characters" class="panel">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Makable Character (Bitmoji / Snap Style)</h1>
+          <p class="section-sub">Customize face shape, skin tone, hair style/color, eyes, brows, mouth, outfit, motion, and accessories.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn" id="char-randomize">Randomize</button>
+          <button class="btn primary" id="char-save">Save Character</button>
+        </div>
+      </div>
+
+      <div class="char-builder-grid">
+        <div class="avatar-stage">
+          <svg id="snap-avatar-svg" class="motion-gpu anim-float" viewBox="0 0 240 260" width="220" height="240" aria-label="Custom Character Preview">
+            <circle cx="120" cy="125" r="96" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="3" />
+            <g id="layer-hair-back"></g>
+            <g id="layer-outfit"></g>
+            <rect x="103" y="146" width="34" height="32" rx="12" id="part-neck" />
+            <g id="layer-face"></g>
+            <g id="layer-eyes"></g>
+            <g id="layer-mouth"></g>
+            <g id="layer-hair-front"></g>
+            <g id="layer-accessory"></g>
+          </svg>
+
+          <div style="width:100%;">
+            <label class="field-label" for="char-name-input">Character Name</label>
+            <input id="char-name-input" type="text" placeholder="Enter character name" style="width:100%;" />
           </div>
-          <canvas id="whiteboard-canvas" width="600" height="420"></canvas>
+
+          <div id="char-status" class="section-sub" style="text-align:center;">Character ready to customize.</div>
         </div>
 
-        <div class="store-card">
-          <h3 style="font-weight:800;">YouTube Watch-Together Cinema</h3>
-          <div style="display:flex; gap:8px;">
-            <input id="yt-url-input" class="input-field" placeholder="Paste YouTube Video ID or URL (e.g. dQw4w9WgXcQ)" />
-            <button class="btn-pro btn-primary" onclick="loadYouTubeVideo()">Load</button>
+        <div class="customizer-panel">
+          <div>
+            <label class="field-label" for="opt-face-shape">Face Shape</label>
+            <select id="opt-face-shape" style="width:100%;">
+              <option value="round">Round</option>
+              <option value="oval">Oval</option>
+              <option value="jaw">Sharp Jaw</option>
+              <option value="heart">Heart</option>
+            </select>
           </div>
-          <div style="position:relative; padding-bottom:56.25%; height:0; border-radius:16px; overflow:hidden; border:1px solid var(--border-strong); background:#000;">
-            <iframe id="yt-player" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;"
-              src="https://www.youtube.com/embed/jfKfPfyJRdk" allowfullscreen></iframe>
+
+          <div>
+            <label class="field-label" for="opt-hair-style">Hair Style</label>
+            <select id="opt-hair-style" style="width:100%;">
+              <option value="crop">Street Crop</option>
+              <option value="spiky">Spiky</option>
+              <option value="bob">Sleek Bob</option>
+              <option value="long">Long Flow</option>
+              <option value="buzz">Buzz Cut</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label" for="opt-expression">Expression / Mouth</label>
+            <select id="opt-expression" style="width:100%;">
+              <option value="grin">Big Grin</option>
+              <option value="smirk">Cool Smirk</option>
+              <option value="happy">Happy Smile</option>
+              <option value="surprised">Surprised</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label" for="opt-outfit">Outfit / Hoodie</label>
+            <select id="opt-outfit" style="width:100%;">
+              <option value="hoodie">Carbon Hoodie</option>
+              <option value="jacket">Racing Jacket</option>
+              <option value="tee">Crewneck Tee</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label" for="opt-accessory">Accessory</label>
+            <select id="opt-accessory" style="width:100%;">
+              <option value="none">None</option>
+              <option value="visor">Cyan Visor Glasses</option>
+              <option value="shades">Dark Shades</option>
+              <option value="cap">Snap Cap</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label" for="opt-char-motion">Avatar Idle Motion</label>
+            <select id="opt-char-motion" style="width:100%;">
+              <option value="anim-float">Float</option>
+              <option value="anim-pulse">Pulse</option>
+              <option value="anim-tilt">Tilt Sweep</option>
+              <option value="anim-jiggle">Spring Jiggle</option>
+              <option value="anim-glow">Neon Glow</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="field-label">Skin Tone</label>
+            <div class="color-chip-row" id="chips-skin"></div>
+          </div>
+
+          <div>
+            <label class="field-label">Hair Color</label>
+            <div class="color-chip-row" id="chips-hair"></div>
+          </div>
+
+          <div>
+            <label class="field-label">Outfit Accent</label>
+            <div class="color-chip-row" id="chips-outfit"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ======================================================================
-         VIEW G: SAVED BOOKMARKS
-         ====================================================================== -->
-    <section id="view-bookmarks" class="stage-view">
-      <h2 style="font-size:1.3rem; font-weight:900; margin-bottom:14px;">Saved Bookmarks</h2>
-      <div id="bookmarks-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+    <!-- KLYXMAP TAB -->
+    <section id="tab-klyxmap" class="panel">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">KlyxMap</h1>
+          <p class="section-sub">Keyless OpenFreeMap + MapLibre GL map view (no API key required).</p>
+        </div>
+      </div>
+
+      <div class="map-toolbar">
+        <select id="klyxmap-style-select" aria-label="Map Style">
+          <option value="https://tiles.openfreemap.org/styles/liberty">OpenFreeMap Liberty</option>
+          <option value="https://tiles.openfreemap.org/styles/positron">OpenFreeMap Positron</option>
+          <option value="https://tiles.openfreemap.org/styles/bright">OpenFreeMap Bright</option>
+        </select>
+        <input id="klyxmap-pin-label" type="text" placeholder="Pin label (e.g. Playground)" />
+        <button class="btn primary" id="klyxmap-drop-pin">Drop Pin at Center</button>
+        <button class="btn" id="klyxmap-reset-view">Center Sofia</button>
+      </div>
+
+      <div id="klyxmap-canvas"></div>
+
+      <div class="claimed-box">
+        <h3 style="font-size:1rem;">Saved KlyxMap Pins</h3>
+        <ul id="klyxmap-pins-list" class="claimed-list"></ul>
+      </div>
+    </section>
+
+    <!-- CHAT & FRIENDS TAB -->
+    <section id="tab-chat" class="panel">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">PIXIECHAT Rooms & Friends</h1>
+          <p class="section-sub">Local/session prototype shell for rooms, character tags, VIP perks, and event logs.</p>
+        </div>
+      </div>
+
+      <div class="chat-layout">
+        <div class="card">
+          <div>
+            <h3 style="margin-bottom:8px;">Channels</h3>
+            <div style="display:flex;flex-direction:column;gap:8px;" id="channel-list"></div>
+          </div>
+          <div style="padding-top:12px;border-top:1px solid var(--border);">
+            <span class="section-sub">Active Room: <strong id="active-room-label">#general</strong></span>
+          </div>
+        </div>
+
+        <div class="chat-box">
+          <div id="chat-feed" class="chat-feed"></div>
+          <form id="chat-form" style="display:flex;gap:8px;">
+            <input id="chat-input" type="text" placeholder="Write a message..." style="flex:1;" />
+            <button type="submit" class="btn primary">Send</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section id="tab-settings" class="panel">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Settings</h1>
+          <p class="section-sub">Change your active theme here—updates apply immediately and sync with Store.</p>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <div>
+          <label class="field-label" for="settings-theme-select">Active Theme</label>
+          <select id="settings-theme-select" style="width:100%;"></select>
+        </div>
+
+        <div>
+          <label class="field-label">Quick Theme Selector</label>
+          <div id="settings-theme-buttons" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+        </div>
+
+        <div style="padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <span class="section-sub">
+            Tokens: <strong id="settings-tokens">0</strong> | VIP Status: <strong id="settings-vip-status">Standard</strong>
+          </span>
+          <div style="display:flex;gap:8px;">
+            <button class="btn" id="export-state-btn">Export JSON</button>
+            <button class="btn" id="reset-demo-state">Reset Saved State</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label">Activity Log</label>
+          <div id="activity-log" class="log-console"></div>
+        </div>
+      </div>
     </section>
   </main>
-</div>
 
-<!-- ==========================================================================
-     MODALS (CHECKOUT, INVITE FRIEND, SOUNDBOARD, WEBRTC CALL)
-     ========================================================================== -->
-<div id="checkout-modal" class="modal-backdrop">
-  <div class="modal-box">
-    <h3 id="checkout-title" style="font-size:1.25rem; font-weight:900; margin-bottom:6px;">Purchase KlyCoins</h3>
-    <p id="checkout-desc" style="color:var(--text-muted); font-size:0.88rem; margin-bottom:18px;"></p>
-    <div style="padding:14px; border-radius:14px; background:rgba(0,0,0,0.35); border:1px solid var(--border-subtle); margin-bottom:18px; font-size:0.84rem; color:var(--text-muted);">
-      Rate: <strong style="color:var(--text-main);">1,000 KlyCoins = €1.00</strong> • Instant encrypted balance update.
-    </div>
-    <div style="display:flex; justify-content:flex-end; gap:10px;">
-      <button class="btn-pro" onclick="closeModal('checkout-modal')">Cancel</button>
-      <button class="btn-pro btn-primary" onclick="confirmPackPurchase()">Confirm & Credit KlyCoins</button>
-    </div>
-  </div>
-</div>
-
-<div id="friend-modal" class="modal-backdrop">
-  <div class="modal-box">
-    <h3 style="font-size:1.2rem; font-weight:900; margin-bottom:8px;">Invite-Only Friend Search</h3>
-    <p style="font-size:0.84rem; color:var(--text-muted); margin-bottom:14px;">Add friends directly by their exact Klyxora handle.</p>
-    <input id="friend-search-input" class="input-field" placeholder="Enter exact handle..." style="margin-bottom:14px;" />
-    <div style="display:flex; justify-content:flex-end; gap:10px;">
-      <button class="btn-pro" onclick="closeModal('friend-modal')">Close</button>
-      <button class="btn-pro btn-primary" onclick="addFriendByHandle()">Send Invite</button>
-    </div>
-  </div>
-</div>
-
-<div id="soundboard-modal" class="modal-backdrop">
-  <div class="modal-box">
-    <h3 style="font-size:1.2rem; font-weight:900; margin-bottom:14px;">Tone-Synthesized Soundboard</h3>
-    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:16px;">
-      <button class="btn-pro" onclick="playSynthTone(523.25, 'sine')">✨ Cyber Chime</button>
-      <button class="btn-pro" onclick="playSynthTone(196.00, 'sawtooth')">🏎️ Turbo Rev</button>
-      <button class="btn-pro" onclick="playSynthTone(880.00, 'triangle')">🪙 KlyCoin Drop</button>
-      <button class="btn-pro" onclick="playSynthTone(329.63, 'square')">👾 Retro Alert</button>
-    </div>
-    <button class="btn-pro" style="width:100%;" onclick="closeModal('soundboard-modal')">Done</button>
-  </div>
-</div>
-
-<div id="call-modal" class="modal-backdrop">
-  <div class="modal-box" style="text-align:center;">
-    <div style="width:68px; height:68px; border-radius:50%; background:var(--accent-glow); margin:0 auto 14px; display:flex; align-items:center; justify-content:center; animation:pulseGlow 2s infinite;">
-      <i data-lucide="phone-call" style="width:30px; height:30px; color:var(--accent-2);"></i>
-    </div>
-    <h3 id="call-modal-title" style="font-size:1.25rem; font-weight:900;">WebRTC Encrypted Session</h3>
-    <p style="color:var(--text-muted); font-size:0.86rem; margin:6px 0 18px;">Peer-to-peer media stream active via Supabase signaling.</p>
-    <video id="local-video" autoplay muted playsinline style="width:100%; max-height:220px; border-radius:14px; background:#000; display:none; margin-bottom:14px;"></video>
-    <button class="btn-pro" style="background:#ef4444; color:#fff; border:none; width:100%;" onclick="endCall()">End Call</button>
-  </div>
-</div>
-
-<script>
-/* ==========================================================================
-   SUPABASE CONFIGURATION & STATE
-   ========================================================================== */
-const SUPABASE_URL = "https://qknbgyexxnglvyyotwhz.supabase.co";
-const SUPABASE_KEY = "sb_publishable_x2vhxchIyk0T27_8kTcLrw_YOmHgyMH";
-const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
-
-const THEMES = [
-  { id: "obsidian-purple", name: "Obsidian Purple", c1: "#a855f7", c2: "#0adfff" },
-  { id: "cyber-cyan", name: "Cyber Cyan", c1: "#0adfff", c2: "#3b82f6" },
-  { id: "carbon-crimson", name: "Carbon Crimson", c1: "#f43f5e", c2: "#fb923c" },
-  { id: "emerald-matrix", name: "Emerald Matrix", c1: "#10b981", c2: "#a3e635" },
-  { id: "solar-gold", name: "Solar Gold", c1: "#f59e0b", c2: "#fde047" },
-  { id: "midnight-indigo", name: "Midnight Indigo", c1: "#6366f1", c2: "#38bdf8" },
-  { id: "sakura-neon", name: "Sakura Neon", c1: "#ec4899", c2: "#f472b6" },
-  { id: "arctic-frost", name: "Arctic Frost", c1: "#38bdf8", c2: "#e0f2fe" },
-  { id: "volcanic-amber", name: "Volcanic Amber", c1: "#f97316", c2: "#facc15" },
-  { id: "synthwave-84", name: "Synthwave '84", c1: "#d946ef", c2: "#0adfff" },
-  { id: "stealth-monochrome", name: "Stealth Mono", c1: "#e4e4e7", c2: "#71717a" },
-  { id: "toxic-lime", name: "Toxic Lime", c1: "#84cc16", c2: "#22d3ee" },
-  { id: "royal-amethyst", name: "Royal Amethyst", c1: "#8b5cf6", c2: "#f472b6" },
-  { id: "deep-abyss", name: "Deep Abyss", c1: "#14b8a6", c2: "#3b82f6" },
-  { id: "phantom-violet", name: "Phantom Violet", c1: "#c084fc", c2: "#818cf8" },
-  { id: "titanium-mint", name: "Titanium Mint", c1: "#2dd4bf", c2: "#a7f3d0" }
-];
-
-const PROFANITY_LIST = ["badword", "spam", "scam"];
-
-let state = {
-  user: null,
-  profile: { id: "local", username: "davicho", role: "admin", klycoins: 2500, premium_tier: "Standard" },
-  channel: "general",
-  messages: [],
-  bookmarks: JSON.parse(localStorage.getItem("klyxora_bookmarks") || "[]"),
-  friends: JSON.parse(localStorage.getItem("klyxora_friends") || '["alex_racer","neon_nova"]'),
-  coinCodes: JSON.parse(localStorage.getItem("klyxora_coin_codes") || "[]"),
-  pendingPack: null,
-  ghostMode: false,
-  localStream: null,
-  map: null
-};
-
-/* ==========================================================================
-   INITIALIZATION & AUTHENTICATION
-   ========================================================================== */
-window.addEventListener("DOMContentLoaded", () => {
-  lucide.createIcons();
-  const savedTheme = localStorage.getItem("klyxora_theme") || "obsidian-purple";
-  applyTheme(savedTheme);
-  renderThemesGrid();
-  renderBookmarks();
-  renderFriends();
-  renderAdminCodes();
-  initWhiteboard();
-
-  // Hidden Admin Console Shortcut: Ctrl + Shift + M
-  window.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "m") {
-      if (state.profile.role === "admin") {
-        switchView("admin");
-        toast("Admin KlyCoin Forge unlocked via shortcut.");
-      } else {
-        toast("Admin privileges required (set role='admin' in Supabase profiles).");
-      }
-    }
-  });
-
-  if (window.innerWidth <= 860) {
-    document.getElementById("mobile-menu-btn").style.display = "inline-flex";
-  }
-});
-
-let authMode = "login";
-function switchAuthTab(mode) {
-  authMode = mode;
-  document.getElementById("username-wrap").style.display = mode === "register" ? "block" : "none";
-  document.getElementById("auth-submit-text").textContent = mode === "register" ? "Create Klyxora Account" : "Launch Klyxora";
-  document.getElementById("tab-login").className = mode === "login" ? "btn-pro btn-primary" : "btn-pro";
-  document.getElementById("tab-register").className = mode === "register" ? "btn-pro btn-primary" : "btn-pro";
-}
-
-async function handleAuth(e) {
-  e.preventDefault();
-  const email = document.getElementById("auth-email").value.trim();
-  const password = document.getElementById("auth-password").value;
-  const username = document.getElementById("auth-username").value.trim() || email.split("@")[0];
-
-  try {
-    if (sb) {
-      let res = authMode === "register"
-        ? await sb.auth.signUp({ email, password, options: { data: { username } } })
-        : await sb.auth.signInWithPassword({ email, password });
-
-      if (res.error) throw res.error;
-      state.user = res.data.user;
-      await loadOrCreateProfile(state.user, username);
-    }
-  } catch (err) {
-    toast("Offline/Preview session active: " + (err.message || "Connected locally"));
-    state.profile.username = username;
-  }
-
-  enterApp();
-}
-
-async function loadOrCreateProfile(user, fallbackName) {
-  if (!sb || !user) return;
-  const { data } = await sb.from("profiles").select("*").eq("id", user.id).single();
-  if (data) {
-    state.profile = {
-      ...data,
-      klycoins: Number(data.klycoins ?? localStorage.getItem("klyxora_coins_" + user.id) ?? 1000),
-      premium_tier: data.premium_tier || localStorage.getItem("klyxora_tier_" + user.id) || "Standard"
+  <script>
+    // 14 themes: Classic + Legacy + VIP (no lifetime tier anywhere)
+    const THEMES = {
+      "carbon-obsidian": { name: "Carbon Obsidian", vipOnly: false, bg: "#0b0912", surface: "#151122", surface2: "#1e1830", accent: "#9b5cff", accent2: "#0adfff", text: "#f5f2ff", muted: "#a69ec2" },
+      "cyan-grid": { name: "Cyan Grid", vipOnly: false, bg: "#071018", surface: "#0e1d2b", surface2: "#162b3f", accent: "#0adfff", accent2: "#9b5cff", text: "#e9fbff", muted: "#8eb8c9" },
+      "velvet-night": { name: "Velvet Night", vipOnly: false, bg: "#12091a", surface: "#20102e", surface2: "#2d1741", accent: "#c45bff", accent2: "#38f2ff", text: "#faf0ff", muted: "#b89ec9" },
+      "damascus-steel": { name: "Damascus Steel", vipOnly: false, bg: "#0e1014", surface: "#181c23", surface2: "#232934", accent: "#7c8cff", accent2: "#0adfff", text: "#f2f5fa", muted: "#9aa4b5" },
+      "emerald-carbon": { name: "Emerald Carbon", vipOnly: false, bg: "#07120e", surface: "#0e2019", surface2: "#153026", accent: "#2ce69b", accent2: "#0adfff", text: "#ebfff7", muted: "#8fc2ae" },
+      "purple-haze-retro": { name: "Purple Haze (Legacy)", vipOnly: false, bg: "#10081c", surface: "#1b0e2e", surface2: "#281544", accent: "#a855f7", accent2: "#22d3ee", text: "#f5efff", muted: "#b29fd4" },
+      "crimson-carbon-retro": { name: "Crimson Carbon (Legacy)", vipOnly: false, bg: "#12080c", surface: "#210e16", surface2: "#311521", accent: "#ff3b6b", accent2: "#0adfff", text: "#fff0f4", muted: "#c79aa6" },
+      "sunset-drift": { name: "Sunset Drift", vipOnly: false, bg: "#140b0e", surface: "#241319", surface2: "#341b24", accent: "#ff7a45", accent2: "#ffd166", text: "#fff4ef", muted: "#d1aba0" },
+      "arctic-slate": { name: "Arctic Slate", vipOnly: false, bg: "#080d14", surface: "#101926", surface2: "#182538", accent: "#38bdf8", accent2: "#a78bfa", text: "#f0f7ff", muted: "#9ab2cc" },
+      "mint-pulse": { name: "Mint Pulse", vipOnly: false, bg: "#061312", surface: "#0c2220", surface2: "#133330", accent: "#14f195", accent2: "#00d4ff", text: "#ecfffb", muted: "#8cc7bd" },
+      "vip-hyper-cyan": { name: "VIP Hyper Cyan", vipOnly: true, bg: "#051218", surface: "#0b222d", surface2: "#123444", accent: "#0adfff", accent2: "#ff66e0", text: "#ecfcff", muted: "#89c7d6" },
+      "vip-royal-amethyst": { name: "VIP Royal Amethyst", vipOnly: true, bg: "#110721", surface: "#1e0d3a", surface2: "#2c1454", accent: "#b54cff", accent2: "#0adfff", text: "#fbf5ff", muted: "#bfa3e6" },
+      "vip-gold-carbon": { name: "VIP Gold Carbon", vipOnly: true, bg: "#120f08", surface: "#211c0f", surface2: "#302816", accent: "#f5b82e", accent2: "#0adfff", text: "#fffaf0", muted: "#cfc09b" },
+      "vip-plasma-neon": { name: "VIP Plasma Neon", vipOnly: true, bg: "#120617", surface: "#210b29", surface2: "#31103d", accent: "#ff2ec4", accent2: "#00f5d4", text: "#fff0fb", muted: "#cf9ec4" }
     };
-  } else {
-    const newProf = { id: user.id, username: fallbackName, role: "user", klycoins: 1000, premium_tier: "Standard" };
-    await sb.from("profiles").upsert(newProf);
-    state.profile = newProf;
-  }
-}
 
-function enterApp() {
-  document.getElementById("auth-screen").style.display = "none";
-  document.getElementById("app-shell").classList.add("active");
-  syncProfileUI();
-  loadMessages();
-  subscribeRealtime();
-  lucide.createIcons();
-}
-
-function signOut() {
-  if (sb) sb.auth.signOut();
-  location.reload();
-}
-
-function syncProfileUI() {
-  const p = state.profile;
-  document.getElementById("me-name").textContent = p.username;
-  document.getElementById("me-avatar").src = `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(p.username)}`;
-  document.getElementById("wallet-balance").textContent = Number(p.klycoins || 0).toLocaleString();
-  document.getElementById("topbar-coins").textContent = Number(p.klycoins || 0).toLocaleString();
-  document.getElementById("user-tier-label").textContent = p.premium_tier || "Standard";
-
-  const isAdmin = p.role === "admin";
-  document.getElementById("role-pill").textContent = isAdmin ? "ADMIN" : (p.premium_tier !== "Standard" ? "PREMIUM" : "MEMBER");
-  document.getElementById("rail-admin-btn").style.display = isAdmin ? "flex" : "none";
-
-  if (state.user) {
-    localStorage.setItem("klyxora_coins_" + state.user.id, p.klycoins);
-    localStorage.setItem("klyxora_tier_" + state.user.id, p.premium_tier);
-  }
-}
-
-/* ==========================================================================
-   NAVIGATION & 16-THEME STUDIO
-   ========================================================================== */
-function switchView(viewId, railEl) {
-  document.querySelectorAll(".stage-view").forEach(v => v.classList.remove("active"));
-  document.getElementById("view-" + viewId).classList.add("active");
-
-  document.querySelectorAll(".rail-item").forEach(r => r.classList.remove("active"));
-  if (railEl) railEl.classList.add("active");
-  else {
-    const target = document.querySelector(`.rail-item[data-view="${viewId}"]`);
-    if (target) target.classList.add("active");
-  }
-
-  const titles = {
-    chat: ["# " + state.channel, "End-to-end realtime channel • Profanity shield active"],
-    store: ["KlyCoins Store & Premium", "1,000 KlyCoins = €1.00 • Unlock Premium tiers with KlyCoins"],
-    admin: ["Admin KlyCoin Forge", "Generate instant redeemable KlyCoin codes & oversee workspace"],
-    themes: ["Appearance Studio", "16 Bespoke Themes with Carbon Fiber & Ambient Glow"],
-    radar: ["Snap Radar Map", "Privacy-first live friend location radar"],
-    collab: ["Live Whiteboard & Watch Party", "Real-time canvas & synchronized YouTube theater"],
-    bookmarks: ["Saved Bookmarks", "Your pinned messages & important drops"]
-  };
-  if (titles[viewId]) {
-    document.getElementById("stage-title").textContent = titles[viewId][0];
-    document.getElementById("stage-subtitle").textContent = titles[viewId][1];
-  }
-  if (viewId === "radar") setTimeout(initRadarMap, 120);
-  lucide.createIcons();
-}
-
-function applyTheme(themeId) {
-  document.documentElement.setAttribute("data-theme", themeId);
-  localStorage.setItem("klyxora_theme", themeId);
-  document.querySelectorAll(".theme-card").forEach(c => {
-    c.classList.toggle("active", c.dataset.themeId === themeId);
-  });
-}
-
-function renderThemesGrid() {
-  const grid = document.getElementById("themes-grid");
-  grid.innerHTML = THEMES.map(t => `
-    <div class="theme-card" data-theme-id="${t.id}" onclick="applyTheme('${t.id}'); toast('Theme: ${t.name}')">
-      <div>
-        <div style="font-weight:700; font-size:0.92rem;">${t.name}</div>
-        <div style="font-size:0.74rem; color:var(--text-muted);">${t.id}</div>
-      </div>
-      <div style="display:flex; gap:6px;">
-        <span style="width:20px; height:20px; border-radius:50%; background:${t.c1}; box-shadow:0 0 10px ${t.c1};"></span>
-        <span style="width:20px; height:20px; border-radius:50%; background:${t.c2}; box-shadow:0 0 10px ${t.c2};"></span>
-      </div>
-    </div>
-  `).join("");
-}
-
-/* ==========================================================================
-   KLYCOINS STORE, PREMIUM PURCHASE & ADMIN CODE GENERATOR
-   ========================================================================== */
-function openCheckoutModal(packName, coins, priceEur) {
-  state.pendingPack = { packName, coins, priceEur };
-  document.getElementById("checkout-title").textContent = `${packName} — ${coins.toLocaleString()} KlyCoins`;
-  document.getElementById("checkout-desc").textContent = `Total: ${priceEur} (Base rate: 1,000 KlyCoins = €1.00).`;
-  openModal("checkout-modal");
-}
-
-async function confirmPackPurchase() {
-  if (!state.pendingPack) return;
-  const { packName, coins } = state.pendingPack;
-  await updateUserCoins(Number(state.profile.klycoins) + coins);
-  closeModal("checkout-modal");
-  playSynthTone(880, "triangle");
-  toast(`+${coins.toLocaleString()} KlyCoins credited from ${packName}!`);
-}
-
-async function buyPremiumWithCoins(tierName, costCoins) {
-  const current = Number(state.profile.klycoins || 0);
-  if (current < costCoins) {
-    toast(`Insufficient KlyCoins! Need ${costCoins.toLocaleString()} KlyCoins.`);
-    return;
-  }
-  await updateUserCoins(current - costCoins);
-  state.profile.premium_tier = tierName;
-  if (sb && state.user) {
-    await sb.from("profiles").update({ premium_tier: tierName, klycoins: state.profile.klycoins }).eq("id", state.user.id);
-  }
-  syncProfileUI();
-  playSynthTone(659.25, "sine");
-  toast(`Unlocked ${tierName} using ${costCoins.toLocaleString()} KlyCoins!`);
-}
-
-async function updateUserCoins(newBalance) {
-  state.profile.klycoins = newBalance;
-  syncProfileUI();
-  if (sb && state.user) {
-    await sb.from("profiles").update({ klycoins: newBalance }).eq("id", state.user.id);
-  }
-}
-
-/* Admin Generates Redeemable KlyCoin Voucher Codes */
-async function adminGenerateCoinCode() {
-  if (state.profile.role !== "admin") {
-    toast("Only Admin accounts can forge KlyCoin codes.");
-    return;
-  }
-  const amount = parseInt(document.getElementById("admin-coin-amount").value, 10);
-  if (!amount || amount <= 0) {
-    toast("Enter a valid positive KlyCoin amount.");
-    return;
-  }
-
-  const seg = () => Math.random().toString(36).substring(2, 6).toUpperCase();
-  const code = `KLYX-${seg()}-${seg()}`;
-  const entry = {
-    code,
-    amount,
-    redeemed: false,
-    created_by: state.profile.username,
-    created_at: new Date().toISOString()
-  };
-
-  state.coinCodes.unshift(entry);
-  localStorage.setItem("klyxora_coin_codes", JSON.stringify(state.coinCodes));
-
-  // Persist to Supabase if klycoin_codes table exists
-  if (sb) {
-    try { await sb.from("klycoin_codes").insert(entry); } catch (_) {}
-  }
-
-  document.getElementById("latest-generated-code").textContent = `${code} (${amount.toLocaleString()} KlyCoins)`;
-  document.getElementById("generated-code-banner").style.display = "flex";
-  renderAdminCodes();
-  playSynthTone(784, "sine");
-  toast(`Forged code ${code} worth ${amount.toLocaleString()} KlyCoins!`);
-}
-
-function copyLatestCode() {
-  const raw = document.getElementById("latest-generated-code").textContent.split(" ")[0];
-  navigator.clipboard.writeText(raw);
-  toast(`Copied ${raw} to clipboard!`);
-}
-
-function renderAdminCodes() {
-  const box = document.getElementById("admin-codes-list");
-  if (!box) return;
-  if (!state.coinCodes.length) {
-    box.innerHTML = `<div style="color:var(--text-muted); font-size:0.86rem;">No KlyCoin codes forged yet. Enter an amount above and click Generate.</div>`;
-    return;
-  }
-  box.innerHTML = state.coinCodes.map(c => `
-    <div class="store-card" style="padding:14px 18px; flex-direction:row; align-items:center;">
-      <div>
-        <div style="font-family:'JetBrains Mono', monospace; font-weight:800; font-size:1rem; color:${c.redeemed ? 'var(--text-muted)' : 'var(--accent-2)'};">
-          ${c.code}
-        </div>
-        <div style="font-size:0.76rem; color:var(--text-muted);">
-          Value: <strong>${Number(c.amount).toLocaleString()} KlyCoins</strong> (€${(c.amount / 1000).toFixed(2)}) • ${c.redeemed ? 'REDEEMED' : 'ACTIVE'}
-        </div>
-      </div>
-      <button class="btn-pro" onclick="navigator.clipboard.writeText('${c.code}'); toast('Copied ${c.code}')">Copy</button>
-    </div>
-  `).join("");
-}
-
-async function redeemKlyCoinCode() {
-  const input = document.getElementById("redeem-code-input");
-  const code = input.value.trim().toUpperCase();
-  if (!code) return toast("Enter a KlyCoin code first.");
-
-  let found = state.coinCodes.find(c => c.code === code && !c.redeemed);
-
-  if (!found && sb) {
-    try {
-      const { data } = await sb.from("klycoin_codes").select("*").eq("code", code).eq("redeemed", false).single();
-      if (data) found = data;
-    } catch (_) {}
-  }
-
-  if (!found) {
-    toast("Invalid or already redeemed KlyCoin code.");
-    return;
-  }
-
-  found.redeemed = true;
-  localStorage.setItem("klyxora_coin_codes", JSON.stringify(state.coinCodes));
-  if (sb) {
-    try { await sb.from("klycoin_codes").update({ redeemed: true }).eq("code", code); } catch (_) {}
-  }
-
-  await updateUserCoins(Number(state.profile.klycoins || 0) + Number(found.amount));
-  input.value = "";
-  renderAdminCodes();
-  playSynthTone(987.77, "triangle");
-  toast(`Redeemed ${code}! +${Number(found.amount).toLocaleString()} KlyCoins added!`);
-}
-
-/* ==========================================================================
-   REALTIME MESSAGING, PROFANITY FILTER, BOOKMARKS, SCHEDULE & DICTATION
-   ========================================================================== */
-function selectChannel(chId, label, el) {
-  state.channel = chId;
-  document.querySelectorAll("#channel-list .list-item").forEach(i => i.classList.remove("active"));
-  if (el) el.classList.add("active");
-  switchView("chat");
-  loadMessages();
-}
-
-function cleanProfanity(text) {
-  let out = text;
-  PROFANITY_LIST.forEach(w => {
-    const reg = new RegExp(`\b${w}\b`, "gi");
-    out = out.replace(reg, "✦✦✦");
-  });
-  return out;
-}
-
-async function loadMessages() {
-  const feed = document.getElementById("chat-messages");
-  feed.innerHTML = "";
-  let msgs = [];
-
-  if (sb) {
-    try {
-      const { data } = await sb.from("messages").select("*").eq("channel_id", state.channel).order("created_at", { ascending: true }).limit(60);
-      if (data) msgs = data;
-    } catch (_) {}
-  }
-
-  if (!msgs.length) {
-    msgs = [
-      { id: "m1", username: "Klyxora System", content: `Welcome to #${state.channel}! Earn or redeem KlyCoins in the Treasury to unlock VIP perks.`, created_at: new Date().toISOString(), is_premium: true }
+    const VIP_ITEMS = [
+      { id: "vip-pass-30d", name: "VIP Pass (30 Days)", desc: "Unlocks all VIP themes, VIP badge, VIP functions, and extra motion speed.", cost: 5000 },
+      { id: "vip-token-boost", name: "VIP Token Pack", desc: "Adds +12,000 bonus tokens straight to your Store wallet.", cost: 0, grantTokens: 12000 },
+      { id: "vip-motion-pack", name: "VIP 144HzFX Boost", desc: "Sets motion speed to 1.5x and adds +5,000 tokens.", cost: 2500, grantTokens: 5000, setMotionSpeed: 1.5 }
     ];
-  }
-  msgs.forEach(appendMessageBubble);
-}
 
-function appendMessageBubble(m) {
-  const feed = document.getElementById("chat-messages");
-  const isOwn = m.username === state.profile.username;
-  const row = document.createElement("div");
-  row.className = `msg-row anim-msg ${isOwn ? "own" : ""}`;
-  row.innerHTML = `
-    <img class="msg-avatar" src="https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(m.username || 'user')}" />
-    <div class="msg-bubble">
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-        <strong style="font-size:0.82rem; color:${isOwn ? 'var(--accent-2)' : 'var(--text-main)'};">${m.username || 'Member'}</strong>
-        ${m.is_premium ? '<span class="premium-badge">VIP</span>' : ''}
-        <span style="font-size:0.7rem; color:var(--text-muted);">${new Date(m.created_at || Date.now()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-      </div>
-      <div>${escapeHtml(m.content)}</div>
-      <div class="msg-actions">
-        <button onclick='saveBookmark(${JSON.stringify(m.username)}, ${JSON.stringify(m.content)})' style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.72rem;">★ Bookmark</button>
-      </div>
-    </div>
-  `;
-  feed.appendChild(row);
-  feed.scrollTop = feed.scrollHeight;
-}
+    const MOTION_PRESETS = Array.from({ length: 36 }, (_, idx) => {
+      const modes = ["vortex", "wave", "orbit", "pulse-grid", "comet", "helix"];
+      const mode = modes[idx % modes.length];
+      return {
+        id: idx + 1,
+        name: `Preset #${String(idx + 1).padStart(2, "0")}: ${mode.toUpperCase()} ${idx + 1}`,
+        mode,
+        freq: 1.4 + (idx % 9) * 0.35,
+        amp: 18 + (idx % 7) * 7
+      };
+    });
 
-async function sendMessage() {
-  const input = document.getElementById("chat-input");
-  const raw = input.value.trim();
-  if (!raw) return;
+    const SKIN_TONES = ["#f7d6be", "#e8b490", "#c6865c", "#8d5524", "#543217"];
+    const HAIR_COLORS = ["#181820", "#4a2c18", "#9e5a2b", "#d9a74a", "#9b5cff", "#0adfff", "#e11d48"];
+    const OUTFIT_COLORS = ["#9b5cff", "#0adfff", "#ff3b6b", "#2ce69b", "#f5b82e", "#2563eb"];
 
-  const schedInput = document.getElementById("schedule-time");
-  const schedActive = document.getElementById("schedule-bar").style.display === "flex" && schedInput.value;
-  const content = cleanProfanity(raw);
-  input.value = "";
+    const STORAGE_KEY = "pixiechat_144fps_vip_v3_0";
 
-  const dispatch = async () => {
-    const msgObj = {
-      channel_id: state.channel,
-      user_id: state.user?.id || null,
-      username: state.profile.username,
-      content,
-      is_premium: state.profile.premium_tier !== "Standard",
-      created_at: new Date().toISOString()
+    const defaultState = {
+      theme: "carbon-obsidian",
+      tokens: 25000,
+      vipUnlocked: false,
+      vipCustomTag: "VIP",
+      motionSpeed: 1,
+      motionGlow: 0.25,
+      motionParticles: 96,
+      motionPresetId: 1,
+      motionCssClass: "anim-float",
+      claimed: [],
+      pins: [{ label: "Sofia Center", lng: 23.3219, lat: 42.6977 }],
+      character: {
+        name: "PixelHero",
+        faceShape: "round",
+        hairStyle: "crop",
+        expression: "grin",
+        outfit: "hoodie",
+        accessory: "visor",
+        motionClass: "anim-float",
+        skinColor: "#e8b490",
+        hairColor: "#181820",
+        outfitColor: "#9b5cff"
+      },
+      activeChannel: "general",
+      messages: {
+        general: [{ sender: "System", text: "PIXIECHAT v3.0 ready: 144FPS Motion Studio, 14 themes, VIP functions & character builder." }],
+        squad: [{ sender: "System", text: "Squad channel ready." }],
+        drops: [{ sender: "System", text: "10 € PSN = 11,000 tokens | 20 € PSN = 22,000 tokens." }]
+      },
+      logs: []
     };
-    appendMessageBubble(msgObj);
-    if (sb) {
-      try { await sb.from("messages").insert(msgObj); } catch (_) {}
+
+    let state = loadState();
+    let klyxMap = null;
+    let mapMarkers = [];
+    let particles = [];
+    let rafId = null;
+    let lastFrameTime = performance.now();
+    let fpsAccumulator = 0;
+    let fpsFrames = 0;
+    let simTime = 0;
+
+    function pushLog(msg) {
+      const stamp = new Date().toLocaleTimeString();
+      state.logs.push(`[${stamp}] ${msg}`);
+      if (state.logs.length > 120) state.logs.shift();
+      renderLogs();
     }
-  };
 
-  if (schedActive) {
-    const delay = Math.max(1000, new Date(schedInput.value).getTime() - Date.now());
-    toggleSchedule();
-    toast(`Message scheduled for ${new Date(Date.now() + delay).toLocaleTimeString()}`);
-    setTimeout(dispatch, delay);
-  } else {
-    await dispatch();
-  }
-}
+    function renderLogs() {
+      const el = document.getElementById("activity-log");
+      if (!el) return;
+      el.innerHTML = state.logs.slice().reverse().map((l) => `<div>${escapeHtml(l)}</div>`).join("");
+    }
 
-function toggleSchedule() {
-  const bar = document.getElementById("schedule-bar");
-  bar.style.display = bar.style.display === "flex" ? "none" : "flex";
-}
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
 
-function subscribeRealtime() {
-  if (!sb) return;
-  sb.channel("klyxora-live")
-    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
-      if (payload.new.channel_id === state.channel && payload.new.username !== state.profile.username) {
-        appendMessageBubble(payload.new);
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (!parsed) return structuredClone(defaultState);
+        return {
+          ...structuredClone(defaultState),
+          ...parsed,
+          theme: THEMES[parsed.theme] ? parsed.theme : defaultState.theme,
+          tokens: Number.isFinite(Number(parsed.tokens)) ? Number(parsed.tokens) : defaultState.tokens,
+          vipUnlocked: Boolean(parsed.vipUnlocked),
+          motionSpeed: Number.isFinite(Number(parsed.motionSpeed)) ? Number(parsed.motionSpeed) : 1,
+          motionGlow: Number.isFinite(Number(parsed.motionGlow)) ? Number(parsed.motionGlow) : 0.25,
+          motionParticles: Number.isFinite(Number(parsed.motionParticles)) ? Number(parsed.motionParticles) : 96,
+          motionPresetId: Number.isFinite(Number(parsed.motionPresetId)) ? Number(parsed.motionPresetId) : 1,
+          claimed: Array.isArray(parsed.claimed) ? parsed.claimed : [],
+          pins: Array.isArray(parsed.pins) ? parsed.pins : structuredClone(defaultState.pins),
+          character: {
+            ...structuredClone(defaultState.character),
+            ...(parsed.character && typeof parsed.character === "object" ? parsed.character : {})
+          },
+          messages: parsed.messages && typeof parsed.messages === "object" ? parsed.messages : structuredClone(defaultState.messages),
+          logs: Array.isArray(parsed.logs) ? parsed.logs : []
+        };
+      } catch {
+        return structuredClone(defaultState);
       }
-    })
-    .subscribe();
-}
-
-function saveBookmark(author, content) {
-  state.bookmarks.unshift({ author, content, time: new Date().toLocaleString() });
-  localStorage.setItem("klyxora_bookmarks", JSON.stringify(state.bookmarks));
-  renderBookmarks();
-  toast("Saved to Bookmarks!");
-}
-
-function renderBookmarks() {
-  const el = document.getElementById("bookmarks-list");
-  if (!el) return;
-  el.innerHTML = state.bookmarks.length
-    ? state.bookmarks.map(b => `<div class="store-card" style="padding:14px;"><strong>${escapeHtml(b.author)}</strong><p style="margin:4px 0;">${escapeHtml(b.content)}</p><span style="font-size:0.72rem; color:var(--text-muted);">${b.time}</span></div>`).join("")
-    : `<p style="color:var(--text-muted);">No bookmarks yet. Click ★ Bookmark on any chat message.</p>`;
-}
-
-/* Speech-to-Text Dictation */
-function startDictation() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return toast("Speech recognition not supported in this browser.");
-  const rec = new SR();
-  rec.lang = "en-US";
-  toast("Listening... speak now.");
-  rec.onresult = (e) => {
-    document.getElementById("chat-input").value += e.results[0][0].transcript;
-  };
-  rec.start();
-}
-
-/* ==========================================================================
-   INVITE-ONLY FRIENDS & SNAP RADAR MAP
-   ========================================================================== */
-function renderFriends() {
-  const list = document.getElementById("friends-list");
-  list.innerHTML = state.friends.map(f => `
-    <div class="list-item" onclick="toast('Direct encrypted ping sent to @${f}')">
-      <img src="https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(f)}" style="width:26px; height:26px; border-radius:8px;" />
-      <span style="font-size:0.84rem; font-weight:600;">@${escapeHtml(f)}</span>
-      <span style="margin-left:auto; width:7px; height:7px; border-radius:50%; background:#10b981;"></span>
-    </div>
-  `).join("");
-}
-
-function addFriendByHandle() {
-  const val = document.getElementById("friend-search-input").value.trim().replace(/^@/, "");
-  if (!val) return;
-  if (!state.friends.includes(val)) {
-    state.friends.push(val);
-    localStorage.setItem("klyxora_friends", JSON.stringify(state.friends));
-    renderFriends();
-  }
-  document.getElementById("friend-search-input").value = "";
-  closeModal("friend-modal");
-  toast(`Added @${val} to your private circle!`);
-}
-
-function initRadarMap() {
-  if (state.map) { state.map.invalidateSize(); return; }
-  state.map = L.map("radar-map").setView([42.6977, 23.3219], 13);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: "&copy; OpenStreetMap &copy; CARTO"
-  }).addTo(state.map);
-
-  L.circleMarker([42.6977, 23.3219], { color: "#0adfff", radius: 10 }).addTo(state.map)
-    .bindPopup(`<b>${state.profile.username}</b> (You)`).openPopup();
-}
-
-function toggleGhostMode() {
-  state.ghostMode = !state.ghostMode;
-  document.getElementById("ghost-label").textContent = `Ghost Mode: ${state.ghostMode ? "ON" : "OFF"}`;
-  toast(state.ghostMode ? "Ghost Mode enabled: location hidden." : "Ghost Mode disabled.");
-}
-
-function pingMyLocation() {
-  if (state.ghostMode) return toast("Turn off Ghost Mode first to broadcast coordinates.");
-  if (!navigator.geolocation) return toast("Geolocation unavailable.");
-  navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude, longitude } = pos.coords;
-    if (state.map) {
-      state.map.setView([latitude, longitude], 15);
-      L.circleMarker([latitude, longitude], { color: "#a855f7", radius: 11 }).addTo(state.map)
-        .bindPopup(`<b>${state.profile.username}</b> Live Radar`).openPopup();
     }
-    toast("Live location updated on Snap Radar!");
-  }, () => toast("Location permission denied."));
-}
 
-/* ==========================================================================
-   WHITEBOARD, WATCH PARTY, SOUNDBOARD & WEBRTC CALLS
-   ========================================================================== */
-function initWhiteboard() {
-  const canvas = document.getElementById("whiteboard-canvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  let drawing = false;
-
-  const getPos = (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return {
-      x: (clientX - rect.left) * (canvas.width / rect.width),
-      y: (clientY - rect.top) * (canvas.height / rect.height)
-    };
-  };
-
-  const start = (e) => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
-  const move = (e) => {
-    if (!drawing) return;
-    const p = getPos(e);
-    ctx.strokeStyle = document.getElementById("wb-color").value;
-    ctx.lineWidth = 3;
-    ctx.lineCap = "round";
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
-  };
-  const end = () => { drawing = false; };
-
-  canvas.addEventListener("mousedown", start);
-  canvas.addEventListener("mousemove", move);
-  window.addEventListener("mouseup", end);
-  canvas.addEventListener("touchstart", start);
-  canvas.addEventListener("touchmove", move);
-  window.addEventListener("touchend", end);
-}
-
-function clearWhiteboard() {
-  const canvas = document.getElementById("whiteboard-canvas");
-  canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function loadYouTubeVideo() {
-  let raw = document.getElementById("yt-url-input").value.trim();
-  const match = raw.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  const vid = match ? match[1] : raw;
-  if (vid) document.getElementById("yt-player").src = `https://www.youtube.com/embed/${vid}`;
-}
-
-function playSynthTone(freq, type) {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, ctx.currentTime);
-  gain.gain.setValueAtTime(0.14, ctx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start();
-  osc.stop(ctx.currentTime + 0.35);
-}
-
-async function startCall(mode) {
-  openModal("call-modal");
-  document.getElementById("call-modal-title").textContent = mode === "video" ? "WebRTC HD Video Call" : "WebRTC Voice Call";
-  const vidEl = document.getElementById("local-video");
-  try {
-    state.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: mode === "video" });
-    if (mode === "video") {
-      vidEl.style.display = "block";
-      vidEl.srcObject = state.localStream;
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-  } catch (_) {
-    toast("Simulated call room active (camera/mic permission unavailable).");
-  }
-}
 
-function endCall() {
-  if (state.localStream) {
-    state.localStream.getTracks().forEach(t => t.stop());
-    state.localStream = null;
-  }
-  document.getElementById("local-video").style.display = "none";
-  closeModal("call-modal");
-}
+    function setStatus(message, type = "") {
+      const el = document.getElementById("store-status");
+      if (!el) return;
+      el.textContent = message;
+      el.className = "status-banner" + (type ? " " + type : "");
+    }
 
-/* Helpers */
-function openModal(id) { document.getElementById(id).classList.add("open"); lucide.createIcons(); }
-function closeModal(id) { document.getElementById(id).classList.remove("open"); }
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
-}
-function toast(msg) {
-  const box = document.getElementById("toast-container");
-  const el = document.createElement("div");
-  el.className = "toast";
-  el.innerHTML = `<i data-lucide="sparkles" style="width:16px; height:16px; color:var(--accent-2);"></i><span>${escapeHtml(msg)}</span>`;
-  box.appendChild(el);
-  lucide.createIcons();
-  setTimeout(() => el.remove(), 3600);
-}
-</script>
+    function applyMotionVars() {
+      const root = document.documentElement.style;
+      root.setProperty("--motion-scale", String(state.motionSpeed));
+      root.setProperty("--glow-strength", String(state.motionGlow));
+    }
+
+    function applyTheme(themeKey) {
+      const candidate = THEMES[themeKey] ? themeKey : "carbon-obsidian";
+      const t = THEMES[candidate];
+
+      if (t.vipOnly && !state.vipUnlocked) {
+        setStatus(`${t.name} requires VIP. Unlock VIP in Store first.`, "err");
+        return false;
+      }
+
+      state.theme = candidate;
+      const root = document.documentElement.style;
+      root.setProperty("--bg", t.bg);
+      root.setProperty("--surface", t.surface);
+      root.setProperty("--surface-2", t.surface2);
+      root.setProperty("--accent", t.accent);
+      root.setProperty("--accent-2", t.accent2);
+      root.setProperty("--text", t.text);
+      root.setProperty("--muted", t.muted);
+
+      const select = document.getElementById("settings-theme-select");
+      if (select) select.value = candidate;
+
+      document.querySelectorAll("[data-theme-key]").forEach((el) => {
+        el.classList.toggle("selected", el.dataset.themeKey === candidate);
+        if (el.classList.contains("theme-quick-btn")) {
+          el.classList.toggle("primary", el.dataset.themeKey === candidate);
+        }
+      });
+
+      saveState();
+      return true;
+    }
+
+    function renderVipUI() {
+      const badge = document.getElementById("header-vip-badge");
+      const settingsVip = document.getElementById("settings-vip-status");
+      const fnBox = document.getElementById("vip-functions-box");
+      if (badge) badge.classList.toggle("active", state.vipUnlocked);
+      if (settingsVip) settingsVip.textContent = state.vipUnlocked ? "VIP ACTIVE" : "Standard";
+      if (fnBox) fnBox.style.display = state.vipUnlocked ? "block" : "none";
+    }
+
+    function renderVipStore() {
+      const grid = document.getElementById("store-vip-grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      VIP_ITEMS.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "card vip-card";
+        const isPass = item.id === "vip-pass-30d";
+        const alreadyVip = isPass && state.vipUnlocked;
+
+        card.innerHTML = `
+          <div>
+            <h3>${escapeHtml(item.name)}</h3>
+            <p class="section-sub">${escapeHtml(item.desc)}</p>
+          </div>
+          <div>
+            <div class="price-tag" style="margin-bottom:10px;">
+              ${item.cost > 0 ? `${item.cost.toLocaleString()} Tokens` : "Free Claim"}
+            </div>
+            <button type="button" class="btn ${alreadyVip ? "" : "cyan"}" style="width:100%;" ${alreadyVip ? "disabled" : ""}>
+              ${alreadyVip ? "VIP Active" : item.cost > 0 ? `Unlock (${item.cost.toLocaleString()} Tokens)` : "Claim +12,000 Tokens"}
+            </button>
+          </div>
+        `;
+
+        card.querySelector("button").onclick = () => {
+          if (item.cost > 0) {
+            if (state.tokens < item.cost) {
+              setStatus(`Need ${item.cost.toLocaleString()} tokens for ${item.name}.`, "err");
+              return;
+            }
+            state.tokens -= item.cost;
+          }
+          if (isPass) {
+            state.vipUnlocked = true;
+            pushLog("Unlocked VIP Pass & VIP functions");
+            setStatus("VIP Pass unlocked! All VIP themes & VIP functions are now active.", "ok");
+          }
+          if (item.grantTokens) {
+            state.tokens += item.grantTokens;
+            pushLog(`Granted +${item.grantTokens.toLocaleString()} tokens from ${item.name}`);
+          }
+          if (item.setMotionSpeed) {
+            state.motionSpeed = item.setMotionSpeed;
+            applyMotionVars();
+            syncMotionControls();
+          }
+          saveState();
+          renderVipUI();
+          renderVipStore();
+          renderThemesUI();
+          applyTheme(state.theme);
+          renderTokens();
+        };
+
+        grid.appendChild(card);
+      });
+    }
+
+    function bindVipFunctions() {
+      document.getElementById("vip-fn-turbo-tokens").onclick = () => {
+        if (!state.vipUnlocked) return;
+        state.tokens += 25000;
+        saveState();
+        renderTokens();
+        pushLog("VIP Daily Drop: +25,000 tokens");
+        setStatus("VIP Daily Drop added +25,000 tokens!", "ok");
+      };
+
+      document.getElementById("vip-fn-max-motion").onclick = () => {
+        if (!state.vipUnlocked) return;
+        state.motionSpeed = 2.0;
+        applyMotionVars();
+        syncMotionControls();
+        saveState();
+        pushLog("VIP Overdrive Motion: 2.0x");
+        setStatus("VIP Overdrive Motion enabled (2.00x speed).", "ok");
+      };
+
+      document.getElementById("vip-fn-custom-tag").onclick = () => {
+        if (!state.vipUnlocked) return;
+        state.vipCustomTag = state.vipCustomTag === "VIP★" ? "VIP-PRO" : "VIP★";
+        saveState();
+        pushLog(`VIP Chat Tag set to ${state.vipCustomTag}`);
+        setStatus(`VIP Chat Tag updated to [${state.vipCustomTag}].`, "ok");
+      };
+
+      document.getElementById("vip-fn-multi-pins").onclick = () => {
+        if (!state.vipUnlocked) return;
+        for (let i = 0; i < 5; i++) {
+          state.pins.push({
+            label: `VIP Drop #${i + 1}`,
+            lng: Number((23.30 + i * 0.012).toFixed(4)),
+            lat: Number((42.69 + i * 0.008).toFixed(4))
+          });
+        }
+        saveState();
+        renderMapMarkers();
+        pushLog("VIP dropped 5 KlyxMap pins");
+        setStatus("Dropped 5 VIP pins on KlyxMap.", "ok");
+      };
+    }
+
+    function renderTokens() {
+      const formatted = state.tokens.toLocaleString();
+      document.getElementById("header-tokens").textContent = formatted;
+      document.getElementById("settings-tokens").textContent = formatted;
+      document.querySelectorAll("[data-redeem-cost]").forEach((btn) => {
+        btn.disabled = state.tokens < Number(btn.dataset.redeemCost);
+      });
+    }
+
+    function renderThemesUI() {
+      const storeGrid = document.getElementById("store-themes-grid");
+      const settingsSelect = document.getElementById("settings-theme-select");
+      const settingsQuickBtns = document.getElementById("settings-theme-buttons");
+
+      storeGrid.innerHTML = "";
+      settingsSelect.innerHTML = "";
+      settingsQuickBtns.innerHTML = "";
+
+      Object.entries(THEMES).forEach(([key, t]) => {
+        const locked = t.vipOnly && !state.vipUnlocked;
+
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = locked ? `${t.name} [VIP Locked]` : t.name;
+        opt.disabled = locked;
+        settingsSelect.appendChild(opt);
+
+        const qBtn = document.createElement("button");
+        qBtn.type = "button";
+        qBtn.className = "btn theme-quick-btn" + (state.theme === key ? " primary" : "");
+        qBtn.dataset.themeKey = key;
+        qBtn.disabled = locked;
+        qBtn.textContent = locked ? `${t.name} (VIP)` : t.name;
+        qBtn.onclick = () => {
+          if (applyTheme(key)) {
+            pushLog(`Theme -> ${t.name} (Settings)`);
+            setStatus(`Switched theme to ${t.name} via Settings.`, "ok");
+          }
+        };
+        settingsQuickBtns.appendChild(qBtn);
+
+        const card = document.createElement("div");
+        card.className = "card" + (state.theme === key ? " selected" : "") + (t.vipOnly ? " vip-card" : "");
+        card.dataset.themeKey = key;
+        card.innerHTML = `
+          <div>
+            <h3>${escapeHtml(t.name)} ${t.vipOnly ? '<span class="section-sub">(VIP)</span>' : ""}</h3>
+            <div class="swatch-row">
+              <span class="swatch" style="background:${t.bg}" title="Background"></span>
+              <span class="swatch" style="background:${t.surface}" title="Surface"></span>
+              <span class="swatch" style="background:${t.accent}" title="Accent"></span>
+              <span class="swatch" style="background:${t.accent2}" title="Secondary Accent"></span>
+            </div>
+          </div>
+          <button type="button" class="btn" data-store-theme-btn="${key}" ${locked ? "disabled" : ""}>
+            ${locked ? "VIP Locked" : state.theme === key ? "Active Theme" : "Apply Theme"}
+          </button>
+        `;
+        card.querySelector("[data-store-theme-btn]").onclick = () => {
+          if (applyTheme(key)) {
+            renderStoreThemeButtons();
+            pushLog(`Theme -> ${t.name} (Store)`);
+            setStatus(`Applied ${t.name} theme from Store.`, "ok");
+          }
+        };
+        storeGrid.appendChild(card);
+      });
+
+      settingsSelect.value = state.theme;
+      settingsSelect.onchange = (e) => {
+        const chosen = e.target.value;
+        if (applyTheme(chosen)) {
+          renderStoreThemeButtons();
+          pushLog(`Theme -> ${THEMES[chosen].name} (Settings Select)`);
+          setStatus(`Switched theme to ${THEMES[chosen].name} via Settings.`, "ok");
+        } else {
+          settingsSelect.value = state.theme;
+        }
+      };
+    }
+
+    function renderStoreThemeButtons() {
+      document.querySelectorAll("[data-store-theme-btn]").forEach((btn) => {
+        const k = btn.dataset.storeThemeBtn;
+        const locked = THEMES[k]?.vipOnly && !state.vipUnlocked;
+        btn.textContent = locked ? "VIP Locked" : state.theme === k ? "Active Theme" : "Apply Theme";
+      });
+    }
+
+    function generateVoucherCode(prefix) {
+      const part = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+      return `${prefix}-${part()}-${part()}-${part()}`;
+    }
+
+    function renderClaimedCards() {
+      const list = document.getElementById("claimed-list");
+      if (!state.claimed.length) {
+        list.innerHTML = `<li class="section-sub">No PlayStation gift cards redeemed yet.</li>`;
+        return;
+      }
+      list.innerHTML = state.claimed
+        .slice()
+        .reverse()
+        .map((item) => `
+          <li class="claimed-item">
+            <div>
+              <strong>${escapeHtml(item.label)}</strong>
+              <span class="section-sub"> (${Number(item.cost).toLocaleString()} tokens)</span>
+            </div>
+            <code class="pin-code">${escapeHtml(item.code)}</code>
+          </li>
+        `)
+        .join("");
+    }
+
+    function bindStoreActions() {
+      document.querySelectorAll("[data-redeem-cost]").forEach((btn) => {
+        btn.onclick = () => {
+          const cost = Number(btn.dataset.redeemCost);
+          const label = btn.dataset.redeemLabel;
+          const id = btn.dataset.redeemId;
+
+          if (state.tokens < cost) {
+            setStatus(`Not enough tokens for ${label}. Need ${cost.toLocaleString()}, have ${state.tokens.toLocaleString()}.`, "err");
+            pushLog(`Failed redeem: ${label}`);
+            return;
+          }
+
+          state.tokens -= cost;
+          const code = generateVoucherCode(id === "psn-20" ? "PSN20" : "PSN10");
+          state.claimed.push({ id, label, cost, code, redeemedAt: new Date().toISOString() });
+
+          saveState();
+          renderTokens();
+          renderClaimedCards();
+          pushLog(`Redeemed ${label} (-${cost} tokens) -> ${code}`);
+          setStatus(`Redeemed ${label} for ${cost.toLocaleString()} tokens! Code: ${code}`, "ok");
+        };
+      });
+
+      document.getElementById("add-1000-tokens").onclick = () => {
+        state.tokens += 1000;
+        saveState();
+        renderTokens();
+        pushLog("+1,000 tokens added");
+        setStatus("Added 1,000 tokens to your Store balance.", "ok");
+      };
+
+      document.getElementById("add-11000-tokens").onclick = () => {
+        state.tokens += 11000;
+        saveState();
+        renderTokens();
+        pushLog("+11,000 tokens added");
+        setStatus("Added 11,000 tokens to your Store balance.", "ok");
+      };
+
+      document.getElementById("export-state-btn").onclick = () => {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "pixiechat-v3-state.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        pushLog("Exported state JSON");
+      };
+
+      document.getElementById("reset-demo-state").onclick = () => {
+        state = structuredClone(defaultState);
+        saveState();
+        applyMotionVars();
+        renderVipUI();
+        renderVipStore();
+        renderThemesUI();
+        applyTheme(state.theme);
+        renderTokens();
+        renderClaimedCards();
+        syncMotionControls();
+        renderMotionPresets();
+        initParticles(state.motionParticles);
+        renderCharacterControls();
+        renderCharacterSvg();
+        renderPinsList();
+        renderChannels();
+        renderChatFeed();
+        renderLogs();
+        setStatus("Reset state to defaults.", "ok");
+      };
+    }
+
+    // 144FPS Motion Studio & Canvas Engine
+    function initParticles(count) {
+      particles = Array.from({ length: count }, (_, i) => ({
+        baseAngle: (i / count) * Math.PI * 2,
+        radius: 24 + (i % 12) * 14,
+        speed: 0.7 + (i % 7) * 0.22,
+        size: 2.2 + (i % 4) * 1.1,
+        burstVelX: 0,
+        burstVelY: 0,
+        useCyan: i % 2 === 0
+      }));
+    }
+
+    function triggerPulseBurst() {
+      particles.forEach((p) => {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 140 + Math.random() * 240;
+        p.burstVelX = Math.cos(ang) * spd;
+        p.burstVelY = Math.sin(ang) * spd;
+      });
+      pushLog("Triggered 144FPS pulse burst");
+    }
+
+    function getActivePreset() {
+      return MOTION_PRESETS.find((p) => p.id === state.motionPresetId) || MOTION_PRESETS[0];
+    }
+
+    function syncMotionControls() {
+      const sp = document.getElementById("motion-speed-slider");
+      const gl = document.getElementById("motion-glow-slider");
+      const pt = document.getElementById("motion-particles-slider");
+      const cls = document.getElementById("motion-css-class-select");
+      const badge = document.getElementById("motion-preview-badge");
+      const lbl = document.getElementById("motion-active-preset-label");
+
+      if (sp) sp.value = String(state.motionSpeed);
+      if (gl) gl.value = String(state.motionGlow);
+      if (pt) pt.value = String(state.motionParticles);
+      if (cls) cls.value = state.motionCssClass;
+
+      document.getElementById("motion-speed-val").textContent = `${state.motionSpeed.toFixed(2)}x`;
+      document.getElementById("motion-glow-val").textContent = state.motionGlow.toFixed(2);
+      document.getElementById("motion-particles-val").textContent = String(state.motionParticles);
+
+      if (badge) {
+        badge.className = `card motion-gpu ${state.motionCssClass}`;
+        badge.style.padding = "12px";
+        badge.style.textAlign = "center";
+        badge.style.minHeight = "auto";
+      }
+      if (lbl) lbl.textContent = getActivePreset().name;
+    }
+
+    function renderMotionPresets() {
+      const grid = document.getElementById("motion-presets-grid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      MOTION_PRESETS.forEach((preset) => {
+        const tile = document.createElement("button");
+        tile.type = "button";
+        tile.className = "preset-tile" + (preset.id === state.motionPresetId ? " active" : "");
+        tile.innerHTML = `
+          <div style="font-weight:700;font-size:0.86rem;">${escapeHtml(preset.name)}</div>
+          <div class="section-sub" style="font-size:0.75rem;">freq ${preset.freq.toFixed(2)} · amp ${preset.amp}</div>
+        `;
+        tile.onclick = () => {
+          state.motionPresetId = preset.id;
+          saveState();
+          renderMotionPresets();
+          syncMotionControls();
+        };
+        grid.appendChild(tile);
+      });
+    }
+
+    function bindMotionStudio() {
+      document.getElementById("motion-speed-slider").oninput = (e) => {
+        state.motionSpeed = Number(e.target.value);
+        applyMotionVars();
+        syncMotionControls();
+        saveState();
+      };
+
+      document.getElementById("motion-glow-slider").oninput = (e) => {
+        state.motionGlow = Number(e.target.value);
+        applyMotionVars();
+        syncMotionControls();
+        saveState();
+      };
+
+      document.getElementById("motion-particles-slider").oninput = (e) => {
+        state.motionParticles = Number(e.target.value);
+        initParticles(state.motionParticles);
+        syncMotionControls();
+        saveState();
+      };
+
+      document.getElementById("motion-css-class-select").onchange = (e) => {
+        state.motionCssClass = e.target.value;
+        syncMotionControls();
+        saveState();
+      };
+
+      document.getElementById("motion-burst-btn").onclick = triggerPulseBurst;
+      document.getElementById("motion-clear-btn").onclick = () => {
+        initParticles(state.motionParticles);
+        pushLog("Reset motion particles");
+      };
+    }
+
+    function stepAndRenderFrame(now) {
+      const rawDt = Math.min(0.05, Math.max(0.001, (now - lastFrameTime) / 1000));
+      lastFrameTime = now;
+
+      fpsAccumulator += rawDt;
+      fpsFrames += 1;
+      if (fpsAccumulator >= 0.25) {
+        const fps = Math.round(fpsFrames / fpsAccumulator);
+        const pill = document.getElementById("live-fps-pill");
+        if (pill) pill.textContent = `${fps} FPS`;
+        fpsAccumulator = 0;
+        fpsFrames = 0;
+      }
+
+      const dt = rawDt * state.motionSpeed;
+      simTime += dt;
+
+      const canvas = document.getElementById("motion-lab-canvas");
+      if (canvas && canvas.offsetParent !== null) {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rectW = canvas.clientWidth || 760;
+        const rectH = canvas.clientHeight || 360;
+        if (canvas.width !== Math.floor(rectW * dpr) || canvas.height !== Math.floor(rectH * dpr)) {
+          canvas.width = Math.floor(rectW * dpr);
+          canvas.height = Math.floor(rectH * dpr);
+        }
+
+        const ctx = canvas.getContext("2d");
+        const rootStyle = getComputedStyle(document.documentElement);
+        const accentHex = rootStyle.getPropertyValue("--accent").trim() || "#9b5cff";
+        const accent2Hex = rootStyle.getPropertyValue("--accent-2").trim() || "#0adfff";
+
+        ctx.save();
+        ctx.scale(dpr, dpr);
+        ctx.fillStyle = "rgba(7, 6, 13, 0.28)";
+        ctx.fillRect(0, 0, rectW, rectH);
+
+        const cx = rectW * 0.5;
+        const cy = rectH * 0.5;
+        const preset = getActivePreset();
+
+        particles.forEach((p, idx) => {
+          p.burstVelX *= Math.pow(0.08, rawDt);
+          p.burstVelY *= Math.pow(0.08, rawDt);
+
+          const tAngle = p.baseAngle + simTime * p.speed * (preset.freq * 0.45);
+          let x = cx + Math.cos(tAngle) * p.radius;
+          let y = cy + Math.sin(tAngle) * (p.radius * 0.62);
+
+          if (preset.mode === "wave") {
+            x = ((idx / Math.max(1, particles.length)) * (rectW - 40)) + 20;
+            y = cy + Math.sin(simTime * preset.freq + idx * 0.28) * preset.amp;
+          } else if (preset.mode === "pulse-grid") {
+            const cols = 12;
+            const col = idx % cols;
+            const row = Math.floor(idx / cols);
+            x = 50 + col * ((rectW - 100) / (cols - 1));
+            y = 40 + row * 24 + Math.cos(simTime * preset.freq + col * 0.4) * (preset.amp * 0.35);
+          } else if (preset.mode === "helix") {
+            x = cx + Math.sin(simTime * preset.freq + idx * 0.18) * (rectW * 0.34);
+            y = 32 + ((idx / Math.max(1, particles.length)) * (rectH - 64));
+          } else if (preset.mode === "comet") {
+            x = cx + Math.cos(tAngle * 1.4) * (rectW * 0.32);
+            y = cy + Math.sin(tAngle * 2.1) * (rectH * 0.32);
+          }
+
+          x += p.burstVelX * rawDt * 4;
+          y += p.burstVelY * rawDt * 4;
+
+          ctx.beginPath();
+          ctx.arc(x, y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = p.useCyan ? accent2Hex : accentHex;
+          ctx.fill();
+        });
+
+        ctx.restore();
+      }
+
+      rafId = requestAnimationFrame(stepAndRenderFrame);
+    }
+
+    // Snapchat-style character renderer & controls
+    function renderCharacterSvg() {
+      const c = state.character;
+      const svgEl = document.getElementById("snap-avatar-svg");
+      if (svgEl) {
+        svgEl.className = `motion-gpu ${c.motionClass || "anim-float"}`;
+      }
+
+      const neck = document.getElementById("part-neck");
+      if (neck) neck.setAttribute("fill", c.skinColor);
+
+      const faceLayer = document.getElementById("layer-face");
+      if (faceLayer) {
+        if (c.faceShape === "oval") {
+          faceLayer.innerHTML = `<ellipse cx="120" cy="112" rx="38" ry="48" fill="${c.skinColor}" />`;
+        } else if (c.faceShape === "jaw") {
+          faceLayer.innerHTML = `<path d="M84 74 Q120 56 156 74 L150 124 L120 156 L90 124 Z" fill="${c.skinColor}" />`;
+        } else if (c.faceShape === "heart") {
+          faceLayer.innerHTML = `<path d="M82 88 Q82 62 120 68 Q158 62 158 88 Q156 132 120 154 Q84 132 82 88 Z" fill="${c.skinColor}" />`;
+        } else {
+          faceLayer.innerHTML = `<circle cx="120" cy="112" r="42" fill="${c.skinColor}" />`;
+        }
+      }
+
+      const eyesLayer = document.getElementById("layer-eyes");
+      if (eyesLayer) {
+        eyesLayer.innerHTML = `
+          <path d="M92 94 Q103 88 112 94" stroke="${c.hairColor}" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M128 94 Q137 88 148 94" stroke="${c.hairColor}" stroke-width="3" fill="none" stroke-linecap="round" />
+          <circle cx="103" cy="108" r="5.5" fill="#14141c" />
+          <circle cx="137" cy="108" r="5.5" fill="#14141c" />
+          <circle cx="105" cy="106" r="2" fill="#ffffff" />
+          <circle cx="139" cy="106" r="2" fill="#ffffff" />
+        `;
+      }
+
+      const mouthLayer = document.getElementById("layer-mouth");
+      if (mouthLayer) {
+        let mouthSvg = `<path d="M104 128 Q120 142 136 128" stroke="#4a1c24" stroke-width="3.2" fill="none" stroke-linecap="round" />`;
+        if (c.expression === "smirk") {
+          mouthSvg = `<path d="M108 131 Q124 134 137 125" stroke="#4a1c24" stroke-width="3.2" fill="none" stroke-linecap="round" />`;
+        } else if (c.expression === "happy") {
+          mouthSvg = `<path d="M105 127 Q120 140 135 127 Z" fill="#ffffff" stroke="#4a1c24" stroke-width="2.5" />`;
+        } else if (c.expression === "surprised") {
+          mouthSvg = `<circle cx="120" cy="131" r="6" fill="#5e1d29" stroke="#330e15" stroke-width="2" />`;
+        }
+        mouthLayer.innerHTML = `
+          <path d="M120 108 L117 120 L123 121" stroke="rgba(0,0,0,0.35)" stroke-width="2.2" fill="none" stroke-linecap="round" />
+          ${mouthSvg}
+        `;
+      }
+
+      const backHair = document.getElementById("layer-hair-back");
+      const frontHair = document.getElementById("layer-hair-front");
+      if (backHair && frontHair) {
+        if (c.hairStyle === "long") {
+          backHair.innerHTML = `<path d="M74 96 Q74 52 120 52 Q166 52 166 96 L172 184 L68 184 Z" fill="${c.hairColor}" />`;
+          frontHair.innerHTML = `<path d="M78 92 Q120 60 162 92 Q146 78 120 82 Q94 78 78 92 Z" fill="${c.hairColor}" />`;
+        } else if (c.hairStyle === "bob") {
+          backHair.innerHTML = `<path d="M76 94 Q78 54 120 54 Q162 54 164 94 L164 142 L76 142 Z" fill="${c.hairColor}" />`;
+          frontHair.innerHTML = `<path d="M78 90 Q120 64 162 90 L152 84 Q120 74 88 84 Z" fill="${c.hairColor}" />`;
+        } else if (c.hairStyle === "spiky") {
+          backHair.innerHTML = "";
+          frontHair.innerHTML = `<path d="M78 92 L86 58 L104 72 L120 46 L136 72 L154 58 L162 92 Q120 72 78 92 Z" fill="${c.hairColor}" />`;
+        } else if (c.hairStyle === "buzz") {
+          backHair.innerHTML = "";
+          frontHair.innerHTML = `<path d="M80 94 Q82 64 120 64 Q158 64 160 94 Q120 74 80 94 Z" fill="${c.hairColor}" />`;
+        } else {
+          backHair.innerHTML = "";
+          frontHair.innerHTML = `<path d="M78 94 Q80 58 120 58 Q160 58 162 94 Q138 76 120 80 Q102 76 78 94 Z" fill="${c.hairColor}" />`;
+        }
+      }
+
+      const outfitLayer = document.getElementById("layer-outfit");
+      if (outfitLayer) {
+        if (c.outfit === "jacket") {
+          outfitLayer.innerHTML = `
+            <path d="M62 222 Q68 172 103 168 L120 218 L137 168 Q172 172 178 222 Z" fill="${c.outfitColor}" />
+            <line x1="120" y1="174" x2="120" y2="222" stroke="#0adfff" stroke-width="3" />
+          `;
+        } else if (c.outfit === "tee") {
+          outfitLayer.innerHTML = `<path d="M68 222 Q74 174 103 170 Q120 184 137 170 Q166 174 172 222 Z" fill="${c.outfitColor}" />`;
+        } else {
+          outfitLayer.innerHTML = `
+            <path d="M60 222 Q66 170 103 168 Q120 192 137 168 Q174 170 180 222 Z" fill="${c.outfitColor}" />
+            <path d="M98 174 Q120 196 142 174" stroke="rgba(0,0,0,0.35)" stroke-width="3" fill="none" />
+          `;
+        }
+      }
+
+      const accLayer = document.getElementById("layer-accessory");
+      if (accLayer) {
+        if (c.accessory === "visor") {
+          accLayer.innerHTML = `<rect x="86" y="99" width="68" height="18" rx="7" fill="rgba(10, 223, 255, 0.35)" stroke="#0adfff" stroke-width="2.5" />`;
+        } else if (c.accessory === "shades") {
+          accLayer.innerHTML = `
+            <rect x="86" y="99" width="30" height="17" rx="5" fill="#101218" stroke="#e2e8f0" stroke-width="2" />
+            <rect x="124" y="99" width="30" height="17" rx="5" fill="#101218" stroke="#e2e8f0" stroke-width="2" />
+            <line x1="116" y1="105" x2="124" y2="105" stroke="#e2e8f0" stroke-width="2.5" />
+          `;
+        } else if (c.accessory === "cap") {
+          accLayer.innerHTML = `
+            <path d="M80 86 Q120 52 160 86 Z" fill="#0adfff" />
+            <path d="M82 86 L174 90 L160 95 L82 90 Z" fill="#0891b2" />
+          `;
+        } else {
+          accLayer.innerHTML = "";
+        }
+      }
+    }
+
+    function renderColorChips(containerId, colors, currentVal, onSelect) {
+      const box = document.getElementById(containerId);
+      if (!box) return;
+      box.innerHTML = "";
+      colors.forEach((col) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "color-chip" + (currentVal === col ? " active" : "");
+        chip.style.background = col;
+        chip.title = col;
+        chip.onclick = () => {
+          onSelect(col);
+          renderCharacterSvg();
+          renderColorChips(containerId, colors, col, onSelect);
+        };
+        box.appendChild(chip);
+      });
+    }
+
+    function renderCharacterControls() {
+      const c = state.character;
+      document.getElementById("char-name-input").value = c.name || "";
+      document.getElementById("opt-face-shape").value = c.faceShape;
+      document.getElementById("opt-hair-style").value = c.hairStyle;
+      document.getElementById("opt-expression").value = c.expression;
+      document.getElementById("opt-outfit").value = c.outfit;
+      document.getElementById("opt-accessory").value = c.accessory;
+      document.getElementById("opt-char-motion").value = c.motionClass || "anim-float";
+
+      renderColorChips("chips-skin", SKIN_TONES, c.skinColor, (val) => { state.character.skinColor = val; });
+      renderColorChips("chips-hair", HAIR_COLORS, c.hairColor, (val) => { state.character.hairColor = val; });
+      renderColorChips("chips-outfit", OUTFIT_COLORS, c.outfitColor, (val) => { state.character.outfitColor = val; });
+    }
+
+    function bindCharacterBuilder() {
+      const bindSelect = (id, prop) => {
+        document.getElementById(id).onchange = (e) => {
+          state.character[prop] = e.target.value;
+          renderCharacterSvg();
+        };
+      };
+
+      bindSelect("opt-face-shape", "faceShape");
+      bindSelect("opt-hair-style", "hairStyle");
+      bindSelect("opt-expression", "expression");
+      bindSelect("opt-outfit", "outfit");
+      bindSelect("opt-accessory", "accessory");
+      bindSelect("opt-char-motion", "motionClass");
+
+      document.getElementById("char-name-input").oninput = (e) => {
+        state.character.name = e.target.value.slice(0, 28);
+      };
+
+      document.getElementById("char-save").onclick = () => {
+        if (!state.character.name.trim()) state.character.name = "PixelHero";
+        saveState();
+        pushLog(`Saved character: ${state.character.name}`);
+        document.getElementById("char-status").textContent = `Saved "${state.character.name}".`;
+      };
+
+      document.getElementById("char-randomize").onclick = () => {
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        state.character = {
+          ...state.character,
+          faceShape: pick(["round", "oval", "jaw", "heart"]),
+          hairStyle: pick(["crop", "spiky", "bob", "long", "buzz"]),
+          expression: pick(["grin", "smirk", "happy", "surprised"]),
+          outfit: pick(["hoodie", "jacket", "tee"]),
+          accessory: pick(["none", "visor", "shades", "cap"]),
+          motionClass: pick(["anim-float", "anim-pulse", "anim-tilt", "anim-jiggle", "anim-glow"]),
+          skinColor: pick(SKIN_TONES),
+          hairColor: pick(HAIR_COLORS),
+          outfitColor: pick(OUTFIT_COLORS)
+        };
+        renderCharacterControls();
+        renderCharacterSvg();
+        document.getElementById("char-status").textContent = "Randomized character.";
+      };
+    }
+
+    function renderPinsList() {
+      const list = document.getElementById("klyxmap-pins-list");
+      if (!list) return;
+      if (!state.pins.length) {
+        list.innerHTML = `<li class="section-sub">No pins dropped yet.</li>`;
+        return;
+      }
+      list.innerHTML = state.pins
+        .map((p, idx) => `
+          <li class="claimed-item">
+            <div>
+              <strong>${escapeHtml(p.label)}</strong>
+              <span class="section-sub"> [${p.lng}, ${p.lat}]</span>
+            </div>
+            <button type="button" class="btn" data-remove-pin="${idx}">Remove</button>
+          </li>
+        `)
+        .join("");
+
+      list.querySelectorAll("[data-remove-pin]").forEach((btn) => {
+        btn.onclick = () => {
+          const i = Number(btn.dataset.removePin);
+          state.pins.splice(i, 1);
+          saveState();
+          renderPinsList();
+          renderMapMarkers();
+        };
+      });
+    }
+
+    function renderMapMarkers() {
+      renderPinsList();
+      if (!klyxMap) return;
+      mapMarkers.forEach((m) => m.remove());
+      mapMarkers = [];
+
+      state.pins.forEach((pin) => {
+        const popup = new maplibregl.Popup({ offset: 25 }).setText(pin.label || "KlyxMap Pin");
+        const marker = new maplibregl.Marker({ color: "#0adfff" })
+          .setLngLat([pin.lng, pin.lat])
+          .setPopup(popup)
+          .addTo(klyxMap);
+        mapMarkers.push(marker);
+      });
+    }
+
+    function initKlyxMap() {
+      if (klyxMap || typeof maplibregl === "undefined") return;
+      const styleSelect = document.getElementById("klyxmap-style-select");
+      klyxMap = new maplibregl.Map({
+        container: "klyxmap-canvas",
+        style: styleSelect.value,
+        center: [23.3219, 42.6977],
+        zoom: 12
+      });
+
+      klyxMap.addControl(new maplibregl.NavigationControl(), "top-right");
+      klyxMap.on("load", () => renderMapMarkers());
+
+      styleSelect.onchange = () => {
+        klyxMap.setStyle(styleSelect.value);
+        klyxMap.once("style.load", () => renderMapMarkers());
+      };
+
+      document.getElementById("klyxmap-drop-pin").onclick = () => {
+        const center = klyxMap.getCenter();
+        const input = document.getElementById("klyxmap-pin-label");
+        const label = (input.value || "").trim() || `Pin #${state.pins.length + 1}`;
+        state.pins.push({
+          label,
+          lng: Number(center.lng.toFixed(6)),
+          lat: Number(center.lat.toFixed(6))
+        });
+        saveState();
+        renderMapMarkers();
+        pushLog(`Dropped KlyxMap pin: ${label}`);
+        input.value = "";
+      };
+
+      document.getElementById("klyxmap-reset-view").onclick = () => {
+        klyxMap.flyTo({ center: [23.3219, 42.6977], zoom: 12 });
+      };
+    }
+
+    function renderChannels() {
+      const container = document.getElementById("channel-list");
+      const channels = Object.keys(state.messages);
+      container.innerHTML = "";
+      channels.forEach((ch) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn" + (state.activeChannel === ch ? " primary" : "");
+        btn.textContent = `#${ch}`;
+        btn.onclick = () => {
+          state.activeChannel = ch;
+          saveState();
+          renderChannels();
+          renderChatFeed();
+        };
+        container.appendChild(btn);
+      });
+      document.getElementById("active-room-label").textContent = `#${state.activeChannel}`;
+    }
+
+    function renderChatFeed() {
+      const feed = document.getElementById("chat-feed");
+      const list = state.messages[state.activeChannel] || [];
+      feed.innerHTML = list
+        .map((m) => `<div class="msg-bubble ${m.sender.startsWith("You") ? "me" : ""}"><strong>${escapeHtml(m.sender)}:</strong> ${escapeHtml(m.text)}</div>`)
+        .join("");
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    function bindChat() {
+      document.getElementById("chat-form").onsubmit = (e) => {
+        e.preventDefault();
+        const input = document.getElementById("chat-input");
+        const text = input.value.trim();
+        if (!text) return;
+        if (!state.messages[state.activeChannel]) state.messages[state.activeChannel] = [];
+        const charTag = state.character?.name ? ` (${state.character.name})` : "";
+        const vipTag = state.vipUnlocked ? ` [${state.vipCustomTag || "VIP"}]` : "";
+        const labelName = `You${charTag}${vipTag}`;
+        state.messages[state.activeChannel].push({ sender: labelName, text });
+        saveState();
+        renderChatFeed();
+        pushLog(`Message in #${state.activeChannel}`);
+        input.value = "";
+      };
+    }
+
+    function initTabs() {
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.onclick = () => {
+          const target = btn.dataset.tab;
+          document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
+          document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === `tab-${target}`));
+
+          if (target === "klyxmap") {
+            initKlyxMap();
+            setTimeout(() => {
+              if (klyxMap) klyxMap.resize();
+            }, 50);
+          }
+        };
+      });
+    }
+
+    // Boot
+    applyMotionVars();
+    initTabs();
+    renderVipUI();
+    renderVipStore();
+    bindVipFunctions();
+    renderThemesUI();
+    applyTheme(state.theme);
+    bindStoreActions();
+    bindMotionStudio();
+    bindCharacterBuilder();
+    bindChat();
+    renderTokens();
+    renderClaimedCards();
+    syncMotionControls();
+    renderMotionPresets();
+    initParticles(state.motionParticles);
+    renderCharacterControls();
+    renderCharacterSvg();
+    renderPinsList();
+    renderChannels();
+    renderChatFeed();
+    renderLogs();
+    rafId = requestAnimationFrame(stepAndRenderFrame);
+  </script>
 </body>
 </html>
